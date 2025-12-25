@@ -1,0 +1,273 @@
+{
+  "metadata": {
+    "name": "scene_example2",
+    "description": "Complex fluid dynamics example demonstrating linked formula elements (fractions, matrices, braces) with SVG and markdown tooltips. No bidirectional links; each content has a single scene node.",
+    "generatedAt": "2025-12-25T16:40:54.904Z"
+  },
+  "library": {
+    "navier_stokes": {
+      "title": "Navier–Stokes Equation",
+      "type": "axiom",
+      "template": "\\rho\\left(\\frac{\\partial {{0}}}{\\partial t} + {{0}} \\cdot \\nabla {{0}}\\right) = -\\nabla {{1}} + {{2}} + {{3}} \\; (U={{4}}, L={{5}})",
+      "note": "Momentum conservation; click colored parts to open linked nodes (velocity, pressure, viscous term, external forces).",
+      "segments": {
+        "0": { "text": "\\mathbf{v}", "type": "link", "target": "continuity_eq", "color": "#2563eb", "tooltip": { "title": "Velocity Field", "content": "\\mathbf{v}: velocity vector field; click to explore continuity & vorticity.", "contentType": "markdown" } },
+        "1": { "text": "p", "type": "link", "target": "pressure", "color": "#0f172a", "tooltip": { "title": "Pressure", "content": "Scalar pressure field; relates to stress tensor.", "contentType": "markdown" } },
+        "2": { "text": "\\mu \\nabla^2 {{0}}", "type": "link", "target": "viscosity", "color": "#16a34a", "tooltip": { "title": "Viscous Term", "content": "Momentum diffusion term; involves viscosity and Laplacian of velocity.", "contentType": "markdown" } },
+        "3": { "text": "{{f}}", "type": "link", "target": "external_forces", "color": "#d97706", "tooltip": { "title": "External Forces", "content": "Body forces like gravity or electromagnetic forcing.", "contentType": "markdown" } },
+        "4": { "text": "U", "type": "link", "target": "reynolds_number", "color": "#4f46e5", "tooltip": { "title": "Characteristic Velocity U", "content": "Characteristic velocity scale; click to view Reynolds number definition.", "contentType": "markdown" } },
+        "5": { "text": "L", "type": "link", "target": "reynolds_number", "color": "#4f46e5", "tooltip": { "title": "Characteristic Length L", "content": "Characteristic length scale used in Reynolds number.", "contentType": "markdown" } }
+      }
+    },
+    "continuity_eq": {
+      "title": "Continuity Equation",
+      "type": "parameter",
+      "template": "\\frac{\\partial {{0}}}{\\partial t} + \\nabla \\cdot ({{0}}) = 0",
+      "note": "Mass conservation; represents local density/velocity relation.",
+      "segments": {
+        "0": { "text": "\\rho \\mathbf{v}", "type": "text" }
+      }
+    },
+    "pressure": {
+      "title": "Pressure and Stress",
+      "type": "parameter",
+      "template": "p = -\\frac{1}{3} \\mathrm{tr}({{0}})",
+      "note": "Pressure related to the trace of the stress tensor.",
+      "segments": {
+        "0": { "text": "\\sigma", "type": "link", "target": "stress_tensor", "color": "#4f46e5", "tooltip": { "title": "Cauchy Stress Tensor", "content": "Click to view tensor (matrix).", "contentType": "markdown" } }
+      }
+    },
+    "stress_tensor": {
+      "title": "Cauchy Stress Tensor ($$\\sigma$$)",
+      "type": "constant",
+      "template": "\\sigma = \\begin{pmatrix} {{0}} & {{1}} \\\\ {{2}} & {{3}} \\end{pmatrix}",
+      "note": "Second-order tensor (matrix) describing internal stresses; matrix entries can be explored.",
+      "segments": {
+        "0": { "text": "\\sigma_{xx}", "type": "link", "target": "stress_a", "color": "#60a5fa", "tooltip": { "title": "sigma_xx", "content": "Matrix element sigma_xx (click to open detailed node)", "contentType": "markdown" } },
+        "1": { "text": "\\sigma_{xy}", "type": "link", "target": "stress_b", "color": "#60a5fa", "tooltip": { "title": "sigma_xy", "content": "Matrix element sigma_xy (click to open detailed node)", "contentType": "markdown" } },
+        "2": { "text": "\\sigma_{yx}", "type": "link", "target": "stress_c", "color": "#60a5fa", "tooltip": { "title": "sigma_yx", "content": "Matrix element sigma_yx (click to open detailed node)", "contentType": "markdown" } },
+        "3": { "text": "\\sigma_{yy}", "type": "link", "target": "stress_d", "color": "#60a5fa", "tooltip": { "title": "sigma_yy", "content": "Matrix element sigma_yy (click to open detailed node)", "contentType": "markdown" } }
+      }
+    },
+    "viscosity": { 
+      "__note_inserted_nodes": false
+    },
+    "stress_a": {
+      "title": "$$\\sigma_{xx}$$",
+      "type": "constant",
+      "template": "\\sigma_{xx}",
+      "note": "Matrix element (xx)",
+      "segments": {
+        "0": { "text": "\\sigma_{xx}", "type": "text" }
+      }
+    },
+    "stress_b": {
+      "title": "$$\\sigma_{xy}$$",
+      "type": "constant",
+      "template": "\\sigma_{xy}",
+      "note": "Matrix element (xy)",
+      "segments": { "0": { "text": "\\sigma_{xy}", "type": "text" } }
+    },
+    "stress_c": {
+      "title": "$$\\sigma_{yx}$$",
+      "type": "constant",
+      "template": "\\sigma_{yx}",
+      "note": "Matrix element (yx)",
+      "segments": { "0": { "text": "\\sigma_{yx}", "type": "text" } }
+    },
+    "stress_d": {
+      "title": "$$\\sigma_{yy}$$",
+      "type": "constant",
+      "template": "\\sigma_{yy}",
+      "note": "Matrix element (yy)",
+      "segments": { "0": { "text": "\\sigma_{yy}", "type": "text" } }
+    },
+    "fraction_num": {
+      "title": "Fraction Numerator",
+      "type": "default",
+      "template": "\\alpha + \\beta",
+      "note": "Example numerator for interactive fraction",
+      "segments": { "0": { "text": "\\alpha", "type": "text" }, "1": { "text": "\\beta", "type": "text" } }
+    },
+    "fraction_den": {
+      "title": "Fraction Denominator",
+      "type": "default",
+      "template": "\\gamma",
+      "note": "Example denominator for interactive fraction",
+      "segments": { "0": { "text": "\\gamma", "type": "text" } }
+    },
+    "fraction_example": {
+      "title": "Fraction Example",
+      "type": "parameter",
+      "template": "\\frac{{{0}}}{{{1}}}",
+      "note": "Interactive fraction with numerator/denominator segments",
+      "segments": { "0": { "text": "num", "type": "link", "target": "fraction_num", "color": "#2563eb" }, "1": { "text": "den", "type": "link", "target": "fraction_den", "color": "#16a34a" } }
+    },
+    "exponent_value": {
+      "title": "Exponent Value",
+      "type": "default",
+      "template": "n",
+      "note": "Exponent used in superscript example",
+      "segments": { "0": { "text": "n", "type": "text" } }
+    },
+    "superscript_example": {
+      "title": "Superscript Example",
+      "type": "parameter",
+      "template": "e^{ {0} }",
+      "note": "Interactive superscript where exponent is clickable",
+      "segments": { "0": { "text": "n", "type": "link", "target": "exponent_value", "color": "#db2777" } }
+    },
+    "sine_plot": {
+      "title": "Sine Function Plot",
+      "type": "constant",
+      "template": "{{0}}",
+      "note": "SVG plot of sine",
+      "segments": { "0": { "text": "\\sin(x)", "type": "text", "tooltip": { "title": "sin(x)", "content": "<svg viewBox=\"0 0 1600 640\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"grid\" width=\"80\" height=\"80\" patternUnits=\"userSpaceOnUse\"><path d=\"M80 0 L0 0 0 80\" fill=\"none\" stroke=\"#cbd5e1\" stroke-width=\"1\"/></pattern></defs><rect width=\"1600\" height=\"640\" rx=\"16\" fill=\"#f8fafc\"/><rect width=\"1600\" height=\"640\" fill=\"url(#grid)\" opacity=\"0.6\"/><g stroke=\"#0f172a\" stroke-width=\"2\"><line x1=\"0\" y1=\"320\" x2=\"1600\" y2=\"320\"/><line x1=\"80\" y1=\"0\" x2=\"80\" y2=\"640\"/></g><path d=\"M0 320 Q200 80 400 320 T800 320 T1200 320 T1600 320\" stroke=\"#2563eb\" fill=\"none\" stroke-width=\"5\"/></svg>", "contentType": "svg" } } }
+    },
+    "gaussian_plot": {
+      "title": "Gaussian Function Plot",
+      "type": "constant",
+      "template": "{{0}}",
+      "note": "SVG plot of Gaussian",
+      "segments": { "0": { "text": "e^{-x^2}", "type": "text", "tooltip": { "title": "e^{-x^2}", "content": "<svg viewBox=\"0 0 1600 640\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"grid\" width=\"80\" height=\"80\" patternUnits=\"userSpaceOnUse\"><path d=\"M80 0 L0 0 0 80\" fill=\"none\" stroke=\"#cbd5e1\" stroke-width=\"1\"/></pattern></defs><rect width=\"1600\" height=\"640\" rx=\"16\" fill=\"#f8fafc\"/><rect width=\"1600\" height=\"640\" fill=\"url(#grid)\" opacity=\"0.6\"/><g stroke=\"#0f172a\" stroke-width=\"2\"><line x1=\"0\" y1=\"320\" x2=\"1600\" y2=\"320\"/><line x1=\"80\" y1=\"0\" x2=\"80\" y2=\"640\"/></g><path d=\"M0 320 C320 160,640 160,960 320 C1280 480,1600 480,1600 320\" stroke=\"#6b7280\" fill=\"none\" stroke-width=\"5\"/></svg>", "contentType": "svg" } } }
+    },
+    "cos_plot": {
+      "title": "Cosine Function Plot",
+      "type": "constant",
+      "template": "{{0}}",
+      "note": "SVG plot of cosine",
+      "segments": { "0": { "text": "\\cos(x)", "type": "text", "tooltip": { "title": "cos(x)", "content": "<svg viewBox=\"0 0 1200 480\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"grid\" width=\"60\" height=\"60\" patternUnits=\"userSpaceOnUse\"><path d=\"M60 0 L0 0 0 60\" fill=\"none\" stroke=\"#cbd5e1\" stroke-width=\"1\"/></pattern></defs><rect width=\"1200\" height=\"480\" rx=\"12\" fill=\"#f8fafc\"/><rect width=\"1200\" height=\"480\" fill=\"url(#grid)\" opacity=\"0.6\"/><g stroke=\"#0f172a\" stroke-width=\"2\"><line x1=\"0\" y1=\"240\" x2=\"1200\" y2=\"240\"/><line x1=\"60\" y1=\"0\" x2=\"60\" y2=\"480\"/></g><path d=\"M0 240 Q150 420 300 240 T600 240 T900 240 T1200 240\" stroke=\"#2563eb\" fill=\"none\" stroke-width=\"4\"/></svg>", "contentType": "svg" } } }
+    },
+    "exp_plot": {
+      "title": "Exponential Function Plot",
+      "type": "constant",
+      "template": "{{0}}",
+      "note": "SVG sketch of e^{x}",
+      "segments": { "0": { "text": "e^{x}", "type": "text", "tooltip": { "title": "e^{x}", "content": "<svg viewBox=\"0 0 1200 480\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"grid\" width=\"60\" height=\"60\" patternUnits=\"userSpaceOnUse\"><path d=\"M60 0 L0 0 0 60\" fill=\"none\" stroke=\"#cbd5e1\" stroke-width=\"1\"/></pattern></defs><rect width=\"1200\" height=\"480\" rx=\"12\" fill=\"#f8fafc\"/><rect width=\"1200\" height=\"480\" fill=\"url(#grid)\" opacity=\"0.6\"/><g stroke=\"#0f172a\" stroke-width=\"2\"><line x1=\"0\" y1=\"240\" x2=\"1200\" y2=\"240\"/><line x1=\"60\" y1=\"0\" x2=\"60\" y2=\"480\"/></g><path d=\"M0 420 C240 300,480 180,720 120 C960 72,1200 48,1200 24\" stroke=\"#f97316\" fill=\"none\" stroke-width=\"4\"/></svg>", "contentType": "svg" } } }
+    },
+    "ln_plot": {
+      "title": "Logarithm Function Plot",
+      "type": "constant",
+      "template": "{{0}}",
+      "note": "SVG sketch of ln(x) for x>0",
+      "segments": { "0": { "text": "\\ln(x)", "type": "text", "tooltip": { "title": "ln(x)", "content": "<svg viewBox=\"0 0 1200 480\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"grid\" width=\"60\" height=\"60\" patternUnits=\"userSpaceOnUse\"><path d=\"M60 0 L0 0 0 60\" fill=\"none\" stroke=\"#cbd5e1\" stroke-width=\"1\"/></pattern></defs><rect width=\"1200\" height=\"480\" rx=\"12\" fill=\"#f8fafc\"/><rect width=\"1200\" height=\"480\" fill=\"url(#grid)\" opacity=\"0.6\"/><g stroke=\"#0f172a\" stroke-width=\"2\"><line x1=\"0\" y1=\"240\" x2=\"1200\" y2=\"240\"/><line x1=\"60\" y1=\"0\" x2=\"60\" y2=\"480\"/></g><path d=\"M24 420 C180 360,360 300,600 240 C840 180,1080 144,1176 120\" stroke=\"#6b7280\" fill=\"none\" stroke-width=\"4\"/></svg>", "contentType": "svg" } } }
+    },
+    "viscosity": {
+      "title": "Viscosity ($$\\mu$$)",
+      "type": "constant",
+      "template": "\\mu = \\text{dynamic viscosity}",
+      "note": "Material property; linked from viscous term in Navier–Stokes.",
+      "segments": {}
+    },
+    "external_forces": {
+      "title": "External Forces",
+      "type": "constant",
+      "template": "\\mathbf{f} = \\rho \\mathbf{g} + \\mathbf{F}_{EM}",
+      "note": "Forcing: gravity and electromagnetic forces; included as a single scene node to maintain uniqueness.",
+      "segments": {
+        "0": {
+          "text": "g",
+          "type": "text",
+          "tooltip": { "title": "Gravity (g)", "content": "<svg viewBox=\"0 0 120 60\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"120\" height=\"60\" rx=\"6\" fill=\"#07104a\"/><path d=\"M10 40 Q 40 0 70 40 T 110 40\" stroke=\"#60a5fa\" stroke-width=\"2\" fill=\"none\"/></svg>", "contentType": "svg" }
+        }
+      }
+    },
+    "reynolds_number": {
+      "title": "Reynolds Number (Re)",
+      "type": "parameter",
+      "template": "\\displaystyle Re = \\frac{\\rho \\; U \\; L}{\\mu}",
+      "note": "Compare inertial to viscous forces; high Re -> turbulence.",
+      "segments": {
+        "0": { "text": "\\rho", "type": "text" },
+        "1": { "text": "U", "type": "text" },
+        "2": { "text": "L", "type": "text" },
+        "3": { "text": "\\mu", "type": "link", "target": "viscosity", "color": "#16a34a" }
+      }
+    },
+    "vorticity": {
+      "title": "Vorticity $$\\omega$$",
+      "type": "constant",
+      "template": "\\omega = \\nabla \\times {{0}}",
+      "note": "Local rotation of fluid; represented with an SVG sketch; does not link back to Navier–Stokes to avoid bidirectional linking.",
+      "segments": {
+        "0": {
+          "text": "\\mathbf{v}",
+          "type": "text",
+          "tooltip": {
+            "title": "Vorticity Sketch",
+            "content": "<svg viewBox=\"0 0 120 80\" xmlns=\"http://www.w3.org/2000/svg\"><rect width=\"120\" height=\"80\" rx=\"8\" fill=\"#07104a\"/><path d=\"M10 50 C 30 10, 60 10, 80 50\" stroke=\"#60a5fa\" stroke-width=\"2\" fill=\"none\"/><circle cx=\"65\" cy=\"35\" r=\"6\" fill=\"#fb7185\"/></svg>",
+            "contentType": "svg"
+          }
+        }
+      }
+    },
+    "kolmogorov": {
+      "title": "Kolmogorov - Energy Cascade",
+      "type": "default",
+      "template": "E(k) \\sim C \\varepsilon^{2/3} k^{-5/3}",
+      "note": "Spectral law in inertial range.",
+      "segments": {
+        "0": { "text": "\\varepsilon", "type": "text" },
+        "1": { "text": "k", "type": "text" }
+      }
+    },
+    "flow_instability": {
+      "title": "Flow Instability (Kelvin–Helmholtz)",
+      "type": "axiom",
+      "template": "\\left\\{ {{0}} \\right\\} \\xrightarrow{Amplification} {{1}}",
+      "note": "Shear-layer instabilities amplified by vorticity and high Re.",
+      "segments": {
+        "0": { "text": "vorticity", "type": "link", "target": "vorticity", "color": "#db2777", "tooltip": { "title": "Vorticity Note", "content": "High local vorticity seeds shear-layer roll-ups.", "contentType": "markdown" } },
+        "1": { "text": "transition", "type": "link", "target": "kolmogorov", "color": "#d97706" }
+      }
+    }
+  },
+  "scene": {
+    "nodes": [
+      { "id": "node_navier", "contentId": "navier_stokes", "x": 520, "y": 160, "fx": 520, "fy": 160, "color": "#2563eb" },
+      { "id": "node_superscript", "contentId": "superscript_example", "x": 420, "y": 120, "fx": null, "fy": null, "color": "#db2777" },
+      { "id": "node_exponent", "contentId": "exponent_value", "x": 520, "y": 120, "fx": null, "fy": null, "color": "#db2777" },
+      { "id": "node_continuity", "contentId": "continuity_eq", "x": 320, "y": 320, "fx": null, "fy": null, "color": "#2563eb" },
+      { "id": "node_viscosity", "contentId": "viscosity", "x": 720, "y": 320, "fx": null, "fy": null, "color": "#16a34a" },
+      { "id": "node_pressure", "contentId": "pressure", "x": 520, "y": 320, "fx": null, "fy": null, "color": "#0f172a" },
+      { "id": "node_reynolds", "contentId": "reynolds_number", "x": 520, "y": 460, "fx": null, "fy": null, "color": "#4f46e5" },
+      { "id": "node_vorticity", "contentId": "vorticity", "x": 220, "y": 520, "fx": null, "fy": null, "color": "#db2777" },
+      { "id": "node_instability", "contentId": "flow_instability", "x": 520, "y": 640, "fx": null, "fy": null, "color": "#9333ea" },
+      { "id": "node_kolmogorov", "contentId": "kolmogorov", "x": 820, "y": 520, "fx": null, "fy": null, "color": "#d97706" },
+      { "id": "node_sine_plot", "contentId": "sine_plot", "x": 720, "y": 420, "fx": null, "fy": null, "color": "#60a5fa" },
+      { "id": "node_gaussian_plot", "contentId": "gaussian_plot", "x": 920, "y": 420, "fx": null, "fy": null, "color": "#fb7185" },
+      { "id": "node_cos_plot", "contentId": "cos_plot", "x": 620, "y": 320, "fx": null, "fy": null, "color": "#34d399" },
+      { "id": "node_exp_plot", "contentId": "exp_plot", "x": 920, "y": 320, "fx": null, "fy": null, "color": "#f97316" },
+      { "id": "node_ln_plot", "contentId": "ln_plot", "x": 1020, "y": 320, "fx": null, "fy": null, "color": "#60a5fa" },
+      { "id": "node_stress", "contentId": "stress_tensor", "x": 720, "y": 160, "fx": null, "fy": null, "color": "#4f46e5" },
+      { "id": "node_stress_a", "contentId": "stress_a", "x": 640, "y": 80, "fx": null, "fy": null, "color": "#60a5fa" },
+      { "id": "node_stress_b", "contentId": "stress_b", "x": 800, "y": 80, "fx": null, "fy": null, "color": "#60a5fa" },
+      { "id": "node_stress_c", "contentId": "stress_c", "x": 640, "y": 240, "fx": null, "fy": null, "color": "#60a5fa" },
+      { "id": "node_stress_d", "contentId": "stress_d", "x": 800, "y": 240, "fx": null, "fy": null, "color": "#60a5fa" },
+      { "id": "node_forces", "contentId": "external_forces", "x": 920, "y": 160, "fx": null, "fy": null, "color": "#d97706" }
+    ],
+    "links": [
+      { "source": "node_navier", "target": "node_continuity" },
+      { "source": "node_navier", "target": "node_viscosity" },
+      { "source": "node_navier", "target": "node_pressure" },
+      { "source": "node_navier", "target": "node_reynolds" },
+      { "source": "node_navier", "target": "node_superscript" },
+      { "source": "node_vorticity", "target": "node_instability" },
+      { "source": "node_reynolds", "target": "node_instability" },
+      { "source": "node_kolmogorov", "target": "node_instability" },
+      { "source": "node_kolmogorov", "target": "node_sine_plot" },
+      { "source": "node_kolmogorov", "target": "node_gaussian_plot" },
+      { "source": "node_kolmogorov", "target": "node_cos_plot" },
+      { "source": "node_kolmogorov", "target": "node_exp_plot" },
+      { "source": "node_kolmogorov", "target": "node_ln_plot" },
+      { "source": "node_superscript", "target": "node_exponent" },
+      { "source": "node_stress", "target": "node_pressure" },
+      { "source": "node_stress", "target": "node_stress_a" },
+      { "source": "node_stress", "target": "node_stress_b" },
+      { "source": "node_stress", "target": "node_stress_c" },
+      { "source": "node_stress", "target": "node_stress_d" },
+      { "source": "node_navier", "target": "node_forces" }
+    ],
+    "expandedState": {}
+  }
+}
