@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Explorer V4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Libraries -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <style>
+        /* --- Base Styles --- */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        /* --- Dynamic Theme Variables --- */
+        .app-container { 
+            width: 100vw; height: 100vh; 
+            background-color: var(--bg); color: var(--text); 
+            position: relative; overflow: hidden; transition: background 0.3s, color 0.3s; 
+        }
+        .grid-bg { background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 40px 40px; }
+        
+        /* --- Node Styles --- */
+        .node-wrapper { position: absolute; transform-origin: center; cursor: grab; will-change: transform; }
+        .node-wrapper:active { cursor: grabbing; }
+        
+        .math-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            width: fit-content; min-width: 240px; max-width: 800px; 
+            box-shadow: 4px 4px 12px var(--shadow);
+            border-radius: 8px;
+            position: relative; transition: all 0.2s;
+            overflow: hidden; /* For header background */
+        }
+        .math-card:hover { transform: translateY(-2px); box-shadow: 8px 8px 24px var(--shadow); z-index: 50; }
+        
+        /* --- Node Type Visuals --- */
+        
+        /* 1. Default: Clean, Modern */
+        .node-type-default { border-left-width: 6px; }
+        .node-type-default .node-header { background: rgba(0,0,0,0.02); }
+
+        /* 2. Axiom: Classical, Strong, Double Border */
+        .node-type-axiom { 
+            border: 3px double var(--accent); 
+            border-left-width: 6px; 
+            border-left-style: solid;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+        .node-type-axiom .node-header { 
+            font-family: "Georgia", "Times New Roman", serif; 
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(to right, rgba(0,0,0,0.05), transparent);
+        }
+
+        /* 3. Constant: Engineering, Rigid, Monospace */
+        .node-type-constant { 
+            border: 1px solid #64748b; 
+            border-left: 6px solid #64748b;
+            /* Striped background hint */
+            background-image: repeating-linear-gradient(45deg, var(--card-bg), var(--card-bg) 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px);
+        }
+        .node-type-constant .node-header { 
+            font-family: "Courier New", monospace; 
+            text-transform: uppercase;
+            font-size: 0.85em;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        /* 4. Parameter: Variable, Dashed, Rounded */
+        .node-type-parameter { 
+            border: 2px dashed var(--border); 
+            border-left: 6px solid var(--accent);
+            border-radius: 16px;
+        }
+        .node-type-parameter .node-header {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        /* --- Node Internals --- */
+        .node-header {
+            padding: 8px 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; font-weight: bold; color: var(--text); opacity: 0.9;
+        }
+        .node-body { padding: 12px 16px; }
+
+        .type-badge {
+            font-size: 9px; padding: 2px 6px; border-radius: 4px;
+            background: var(--text); color: var(--bg);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        /* Actions */
+        .node-actions { position: absolute; top: 6px; right: 6px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; }
+        .math-card:hover .node-actions, .math-card.pinned .node-actions { opacity: 1; }
+        .action-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
+        .action-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .action-btn.active { background: var(--text); color: var(--bg); }
+
+        /* Math Engine */
+        .interactive-math-container { white-space: nowrap; overflow-x: auto; padding-bottom: 4px; font-size: 1.1em; }
+        .interactive-math-container::-webkit-scrollbar { height: 4px; }
+        .interactive-math-container::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+        .interactive-math-elem { cursor: pointer; transition: opacity 0.2s; display: inline-block; border-bottom: 1px dotted transparent; }
+        .interactive-math-elem:hover { opacity: 0.7; border-bottom-color: currentColor; }
+        
+        /* Note */
+        .node-note { margin-top: 12px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 13px; opacity: 0.8; line-height: 1.5; white-space: normal; }
+        
+        /* UI Panels */
+        .ui-panel { position: fixed; background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; border-radius: 8px; overflow: hidden; transition: all 0.3s; color: var(--text); }
+        .nav-panel { top: 20px; left: 20px; max-height: 80vh; display: flex; flex-direction: column; }
+        .control-panel { bottom: 20px; left: 20px; }
+        .ui-header { padding: 0 12px; height: 44px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-weight: 600; font-size: 14px; user-select: none; border-bottom: 1px solid transparent; }
+        .ui-header:hover { background: rgba(0,0,0,0.05); }
+        .ui-content { padding: 12px; border-top: 1px solid var(--border); overflow-y: auto; }
+        
+        /* Tooltip */
+        .tooltip { position: fixed; background: var(--card-bg); border: 1px solid var(--border); padding: 12px; font-size: 13px; pointer-events: none; z-index: 1000; box-shadow: 0 8px 20px rgba(0,0,0,0.2); max-width: 320px; border-radius: 6px; color: var(--text); }
+        .tooltip-title { font-weight: bold; margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+        .tooltip-svg svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+
+        /* Editor */
+        .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .editor-modal { background: #fff; color: #1e293b; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .editor-input { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc; color: #334155; font-size: 14px; transition: border 0.2s; }
+        .editor-input:focus { outline: none; border-color: #3b82f6; background: #fff; }
+        .editor-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 4px; margin-top: 12px; }
+        .color-swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; }
+        .color-swatch:hover { transform: scale(1.1); }
+        .color-swatch.selected { border-color: #000; transform: scale(1.1); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+        // ==========================================
+        // 1. CONFIGURATION & DATA
+        // ==========================================
+        
+        const I18N = {
+            en: {
+                explorer: "Explorer", settings: "Settings", newNode: "New Node", sceneOutline: "SCENE OUTLINE",
+                theme: "Theme", gravity: "Gravity", distance: "Distance", showTooltips: "Show Tooltips",
+                language: "Language", export: "Export", import: "Import", editNode: "Edit Node Content",
+                id: "Unique ID (Reference Key)", idHelp: "Only letters, numbers, and underscores.",
+                title: "Title", type: "Type", color: "Color", template: "LaTeX Template",
+                segments: "Interactive Segments", addSegment: "Add Segment", note: "Note (Markdown)",
+                cancel: "Cancel", save: "Save Changes", tooltipSettings: "Tooltip Settings",
+                types: { default: "Concept", axiom: "Axiom", constant: "Constant", parameter: "Parameter" }
+            },
+            zh: {
+                explorer: "资源管理器", settings: "设置", newNode: "新建节点", sceneOutline: "场景大纲",
+                theme: "主题", gravity: "引力强度", distance: "连线距离", showTooltips: "显示提示框",
+                language: "语言", export: "导出", import: "导入", editNode: "编辑节点内容",
+                id: "唯一 ID (引用键)", idHelp: "仅限字母、数字和下划线。",
+                title: "标题", type: "类型", color: "颜色", template: "LaTeX 模板",
+                segments: "交互片段", addSegment: "添加片段", note: "备注 (Markdown)",
+                cancel: "取消", save: "保存更改", tooltipSettings: "提示框设置",
+                types: { default: "概念", axiom: "公理", constant: "常数", parameter: "参数" }
+            }
+        };
+
+        const THEME_PRESETS = {
+            classic: { '--bg': '#f8fafc', '--grid': '#e2e8f0', '--card-bg': '#ffffff', '--text': '#0f172a', '--border': '#cbd5e1', '--shadow': 'rgba(0,0,0,0.08)', '--accent': '#3b82f6' },
+            blackboard: { '--bg': '#1e293b', '--grid': '#334155', '--card-bg': '#334155', '--text': '#f1f5f9', '--border': '#475569', '--shadow': 'rgba(0,0,0,0.3)', '--accent': '#60a5fa' },
+            blueprint: { '--bg': '#1e40af', '--grid': '#3b82f6', '--card-bg': '#172554', '--text': '#ffffff', '--border': '#60a5fa', '--shadow': 'rgba(0,0,0,0.2)', '--accent': '#93c5fd' },
+            sepia: { '--bg': '#fdf6e3', '--grid': '#eee8d5', '--card-bg': '#fdf6e3', '--text': '#586e75', '--border': '#d33682', '--shadow': 'rgba(0,0,0,0.1)', '--accent': '#b58900' }
+        };
+
+        const COLORS = ['#0f172a', '#dc2626', '#ea580c', '#d97706', '#16a34a', '#2563eb', '#4f46e5', '#9333ea', '#db2777'];
+        const NODE_TYPES = ['default', 'axiom', 'constant', 'parameter'];
+
+        // --- Complex Initial Data: General Relativity ---
+        const INITIAL_LIBRARY = {
+            "einstein_eq": {
+                title: "Einstein Field Equations",
+                type: "axiom",
+                template: "R_{\\mu\\nu} - \\frac{1}{2}R {{0}} + \\Lambda {{1}} = \\frac{8\\pi {{2}} }{ {{3}} ^4} T_{\\mu\\nu}",
+                note: "Relates the geometry of spacetime to the distribution of matter within it.",
+                segments: {
+                    "0": { text: "g_{\\mu\\nu}", type: "link", target: "metric_tensor", color: "#2563eb", tooltip: { title: "Metric Tensor", content: "Defines the geometry of spacetime.", contentType: "markdown" } },
+                    "1": { text: "g_{\\mu\\nu}", type: "text" }, // Visual repetition
+                    "2": { text: "G", type: "link", target: "grav_const", color: "#16a34a", tooltip: { title: "Gravitational Constant", content: "6.674×10⁻¹¹ m³⋅kg⁻¹⋅s⁻²" } },
+                    "3": { text: "c", type: "link", target: "speed_light", color: "#db2777", tooltip: { title: "Speed of Light", content: "299,792,458 m/s" } }
+                }
+            },
+            "metric_tensor": {
+                title: "Metric Tensor",
+                type: "parameter",
+                template: "g_{\\mu\\nu} = \\begin{pmatrix} -1 & 0 & 0 & 0 \\\\ 0 & 1 & 0 & 0 \\\\ 0 & 0 & r^2 & 0 \\\\ 0 & 0 & 0 & r^2\\sin^2\\theta \\end{pmatrix}",
+                note: "Example: The Schwarzschild metric for a non-rotating spherical mass.",
+                segments: {
+                    "0": { text: "", type: "text", tooltip: { title: "Spacetime Curvature", contentType: "svg", content: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(#grid)" /><circle cx="50" cy="50" r="20" fill="none" stroke="blue" stroke-width="2"/><path d="M 10 50 Q 50 90 90 50" stroke="red" fill="none" stroke-width="2"/></svg>` } }
+                }
+            },
+            "grav_const": {
+                title: "Gravitational Constant",
+                type: "constant",
+                template: "G \\approx 6.674 \\times 10^{-11}",
+                note: "Empirical physical constant involved in the calculation of gravitational effects.",
+                segments: {}
+            },
+            "speed_light": {
+                title: "Speed of Light",
+                type: "constant",
+                template: "c = 299,792,458 \\text{ m/s}",
+                note: "Universal speed limit for causality.",
+                segments: {}
+            }
+        };
+
+        const INITIAL_NODES = [
+            { id: "node-root", contentId: "einstein_eq", x: window.innerWidth / 2, y: window.innerHeight / 3, fx: window.innerWidth / 2, fy: window.innerHeight / 3, color: COLORS[0] }
+        ];
+
+        // ==========================================
+        // 2. COMPONENTS
+        // ==========================================
+
+        const InteractiveMath = ({ template, segments, nodeId, expandedSegments, onToggle, onHover }) => {
+            const containerRef = useRef(null);
+            const finalLatex = useMemo(() => {
+                if (!template) return "";
+                return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+                    const seg = segments[key];
+                    if (!seg) return "\\text{?}";
+                    const isLink = seg.type === 'link';
+                    let content = seg.text;
+                    if (isLink && seg.color) content = `\\textcolor{${seg.color}}{${content}}`;
+                    return `\\htmlId{seg-${nodeId}-${key}}{${content}}`;
+                });
+            }, [template, segments, nodeId]);
+
+            useEffect(() => {
+                if (containerRef.current) katex.render(finalLatex, containerRef.current, { throwOnError: false, trust: true });
+            }, [finalLatex]);
+
+            useEffect(() => {
+                const container = containerRef.current;
+                if (!container) return;
+                const handleClick = (e) => {
+                    const target = e.target.closest('[id^="seg-"]');
+                    if (!target) return;
+                    const idParts = target.id.split('-'); const key = idParts.pop(); const targetNodeId = idParts.slice(1).join('-');
+                    if (targetNodeId !== nodeId) return;
+                    const seg = segments[key];
+                    if (seg && seg.type === 'link') { e.stopPropagation(); onToggle(nodeId, key, seg.target, seg.color); }
+                };
+                const handleMouseOver = (e) => {
+                    const target = e.target.closest('[id^="seg-"]');
+                    if (target) {
+                        const key = target.id.split('-').pop(); const seg = segments[key];
+                        if (seg) { target.style.opacity = "0.6"; target.style.cursor = seg.type === 'link' ? "pointer" : "default"; if (seg.tooltip) onHover(e, seg.tooltip); }
+                    }
+                };
+                const handleMouseOut = (e) => {
+                    const target = e.target.closest('[id^="seg-"]');
+                    if (target) { target.style.opacity = "1"; onHover(null, null); }
+                };
+                container.addEventListener('click', handleClick); container.addEventListener('mouseover', handleMouseOver); container.addEventListener('mouseout', handleMouseOut);
+                return () => { container.removeEventListener('click', handleClick); container.removeEventListener('mouseover', handleMouseOver); container.removeEventListener('mouseout', handleMouseOut); };
+            }, [segments, nodeId, onToggle, onHover]);
+
+            return <div ref={containerRef} className="interactive-math-container" />;
+        };
+
+        const RichViewer = ({ content, type = 'markdown' }) => {
+            const ref = useRef(null);
+            useEffect(() => {
+                if (!ref.current) return;
+                if (type === 'svg') { ref.current.innerHTML = content; const svg = ref.current.querySelector('svg'); if(svg) { svg.style.maxWidth = "100%"; svg.style.height = "auto"; } }
+                else if (type === 'latex') { katex.render(content, ref.current, { throwOnError: false }); }
+                else { ref.current.innerHTML = marked.parse(content || ""); renderMathInElement(ref.current, { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], throwOnError: false }); }
+            }, [content, type]);
+            return <div ref={ref} className={type === 'svg' ? 'tooltip-svg' : 'node-note'} />;
+        };
+
+        const MathNode = ({ node, content, expandedSegments, onToggle, onHover, onDragStart, onEdit, onPin, lang }) => {
+            const baseColor = node.color || COLORS[0];
+            const isPinned = node.fx !== null && node.fx !== undefined;
+            const nodeType = content.type || 'default';
+
+            if (!content) return null;
+
+            return (
+                <div className="node-wrapper" onMouseDown={(e) => onDragStart(e, node)}>
+                    <div className={`math-card ${isPinned ? 'pinned' : ''} node-type-${nodeType}`} style={{ borderLeftColor: baseColor }}>
+                        <div className="node-header">
+                            <span className="truncate">{content.title}</span>
+                            <span className="type-badge" style={{ color: baseColor }}>{I18N[lang].types[nodeType]}</span>
+                        </div>
+                        
+                        <div className="node-actions">
+                            <div className={`action-btn ${isPinned ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); onPin(node); }}><i className={isPinned ? "ri-pushpin-fill" : "ri-pushpin-line"}></i></div>
+                            <div className="action-btn" onClick={(e) => { e.stopPropagation(); onEdit(node); }}><i className="ri-edit-line"></i></div>
+                        </div>
+
+                        <div className="node-body">
+                            <InteractiveMath template={content.template} segments={content.segments || {}} nodeId={node.id} expandedSegments={expandedSegments} onToggle={onToggle} onHover={onHover} />
+                            {content.note && <RichViewer content={content.note} type="markdown" />}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const NodeEditor = ({ node, content, onClose, onSave, lang, existingIds }) => {
+            const t = I18N[lang];
+            const [contentId, setContentId] = useState(node.contentId);
+            const [data, setData] = useState({
+                title: content.title || "", type: content.type || "default", template: content.template || "", note: content.note || "",
+                segments: Object.entries(content.segments || {}).map(([key, val]) => ({ key, ...val }))
+            });
+            const [color, setColor] = useState(node.color || COLORS[0]);
+
+            const handleSave = () => {
+                // ID Validation
+                if (!/^[a-zA-Z0-9_]+$/.test(contentId)) { alert("ID must contain only letters, numbers, and underscores."); return; }
+                if (contentId !== node.contentId && existingIds.includes(contentId)) { alert("This ID already exists. Please choose a unique ID."); return; }
+
+                const segObj = {};
+                data.segments.forEach(s => { const { key, ...rest } = s; segObj[key] = rest; });
+                onSave(node.id, contentId, { ...data, segments: segObj }, color);
+            };
+
+            const updateSegment = (idx, field, val) => {
+                const newSegs = [...data.segments];
+                if (field.includes('.')) { const [p, c] = field.split('.'); if (!newSegs[idx][p]) newSegs[idx][p] = {}; newSegs[idx][p][c] = val; } 
+                else { newSegs[idx][field] = val; }
+                setData({ ...data, segments: newSegs });
+            };
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="editor-modal" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6 border-b pb-4">
+                            <h3 className="text-xl font-bold flex items-center gap-2"><i className="ri-edit-circle-line text-blue-600"></i> {t.editNode}</h3>
+                            <button onClick={onClose} className="text-gray-400 hover:text-red-500"><i className="ri-close-line text-2xl"></i></button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label className="editor-label">{t.id}</label>
+                                <input className="editor-input font-mono font-bold text-blue-700" value={contentId} onChange={e => setContentId(e.target.value)} />
+                                <div className="text-xs text-gray-400 mt-1">{t.idHelp}</div>
+
+                                <label className="editor-label">{t.title}</label>
+                                <input className="editor-input" value={data.title} onChange={e => setData({...data, title: e.target.value})} />
+                                
+                                <label className="editor-label">{t.type}</label>
+                                <select className="editor-input" value={data.type} onChange={e => setData({...data, type: e.target.value})}>
+                                    {NODE_TYPES.map(type => <option key={type} value={type}>{t.types[type]}</option>)}
+                                </select>
+                                <label className="editor-label">{t.color}</label>
+                                <div className="flex gap-2 flex-wrap">
+                                    {COLORS.map(c => <div key={c} className={`color-swatch ${color === c ? 'selected' : ''}`} style={{ background: c }} onClick={() => setColor(c)} />)}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="editor-label">{t.template}</label>
+                                <textarea className="editor-input font-mono text-sm h-40" value={data.template} onChange={e => setData({...data, template: e.target.value})} placeholder="\frac{ {{0}} }{ {{1}} }" />
+                            </div>
+                        </div>
+                        <div className="mb-6 bg-slate-50 p-4 rounded-lg border">
+                            <label className="editor-label mb-2">{t.segments}</label>
+                            <div className="space-y-3">
+                                {data.segments.map((seg, idx) => (
+                                    <div key={idx} className="p-3 border rounded bg-white shadow-sm">
+                                        <div className="flex gap-2 mb-2 items-center">
+                                            <span className="font-mono font-bold text-xs bg-slate-200 px-2 py-1 rounded">{'{{' + seg.key + '}}'}</span>
+                                            <input className="editor-input font-mono flex-1" placeholder="LaTeX Content" value={seg.text} onChange={e => updateSegment(idx, 'text', e.target.value)} />
+                                            <select className="editor-input w-24" value={seg.type} onChange={e => updateSegment(idx, 'type', e.target.value)}>
+                                                <option value="text">Text</option><option value="link">Link</option>
+                                            </select>
+                                            <button className="text-red-400 hover:text-red-600" onClick={() => setData({...data, segments: data.segments.filter((_, i) => i !== idx)})}><i className="ri-delete-bin-line"></i></button>
+                                        </div>
+                                        {seg.type === 'link' && (
+                                            <div className="grid grid-cols-2 gap-2 mb-2 pl-10">
+                                                <input className="editor-input" placeholder="Target Content ID" value={seg.target || ''} onChange={e => updateSegment(idx, 'target', e.target.value)} />
+                                                <div className="flex items-center gap-2"><span className="text-xs text-gray-500">Color:</span><input type="color" className="h-8 w-full cursor-pointer rounded" value={seg.color || '#000000'} onChange={e => updateSegment(idx, 'color', e.target.value)} /></div>
+                                            </div>
+                                        )}
+                                        <details className="pl-10"><summary className="text-xs text-gray-500 hover:text-blue-500 cursor-pointer">{t.tooltipSettings}</summary><div className="pt-2 grid gap-2"><input className="editor-input" placeholder="Title" value={seg.tooltip?.title || ''} onChange={e => updateSegment(idx, 'tooltip.title', e.target.value)} /><select className="editor-input" value={seg.tooltip?.contentType || 'markdown'} onChange={e => updateSegment(idx, 'tooltip.contentType', e.target.value)}><option value="markdown">Markdown</option><option value="latex">LaTeX</option><option value="svg">SVG</option></select><textarea className="editor-input" rows="2" placeholder="Content..." value={seg.tooltip?.content || ''} onChange={e => updateSegment(idx, 'tooltip.content', e.target.value)} /></div></details>
+                                    </div>
+                                ))}
+                                <button className="w-full py-2 border border-dashed rounded text-gray-500 hover:bg-white hover:text-blue-600 text-sm transition-colors" onClick={() => setData({...data, segments: [...data.segments, { key: data.segments.length.toString(), text: "?", type: "text" }]})}><i className="ri-add-line"></i> {t.addSegment}</button>
+                            </div>
+                        </div>
+                        <div className="mb-6"><label className="editor-label">{t.note}</label><textarea className="editor-input font-mono" rows="4" value={data.note} onChange={e => setData({...data, note: e.target.value})} /></div>
+                        <div className="flex justify-end gap-3 pt-4 border-t"><button className="px-5 py-2 rounded border hover:bg-gray-100 text-sm font-medium" onClick={onClose}>{t.cancel}</button><button className="px-5 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium shadow-sm" onClick={handleSave}>{t.save}</button></div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 3. MAIN APP
+        // ==========================================
+        const App = () => {
+            const [library, setLibrary] = useState(INITIAL_LIBRARY);
+            const [nodes, setNodes] = useState(INITIAL_NODES);
+            const [links, setLinks] = useState([]);
+            const [expandedState, setExpandedState] = useState({});
+            const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
+            const [tooltip, setTooltip] = useState(null);
+            const [editingNodeId, setEditingNodeId] = useState(null);
+            const [settings, setSettings] = useState({ theme: 'classic', gravity: 300, distance: 300, showTooltips: true, lang: 'en' });
+            const [navOpen, setNavOpen] = useState(true);
+            const [ctrlOpen, setCtrlOpen] = useState(true);
+            const svgRef = useRef(null);
+            const simulationRef = useRef(null);
+            const graphData = useRef({ nodes: [...INITIAL_NODES], links: [] });
+            const t = I18N[settings.lang];
+
+            useEffect(() => {
+                const root = document.querySelector('.app-container');
+                if (root) { const themeVars = THEME_PRESETS[settings.theme]; Object.entries(themeVars).forEach(([key, val]) => { root.style.setProperty(key, val); }); }
+            }, [settings.theme]);
+
+            useEffect(() => {
+                simulationRef.current = d3.forceSimulation(graphData.current.nodes)
+                    .force("charge", d3.forceManyBody().strength(-settings.gravity))
+                    .force("link", d3.forceLink(graphData.current.links).id(d => d.id).distance(settings.distance))
+                    .force("collide", d3.forceCollide(150))
+                    .on("tick", () => { setNodes([...graphData.current.nodes]); setLinks([...graphData.current.links]); });
+                const zoom = d3.zoom().scaleExtent([0.1, 4]).on("zoom", e => setTransform(e.transform));
+                d3.select(svgRef.current).call(zoom).on("dblclick.zoom", null);
+                return () => simulationRef.current.stop();
+            }, []);
+
+            useEffect(() => {
+                if (simulationRef.current) { simulationRef.current.force("charge").strength(-settings.gravity); simulationRef.current.force("link").distance(settings.distance); simulationRef.current.alpha(0.3).restart(); }
+            }, [settings.gravity, settings.distance]);
+
+            const handleAddNode = () => {
+                const newContentId = `topic_${Date.now()}`; const newNodeId = `node_${Date.now()}`;
+                setLibrary(prev => ({ ...prev, [newContentId]: { title: "New Topic", type: "default", template: "\\text{New Node}", note: "Edit this node to add content.", segments: {} } }));
+                const newNode = { id: newNodeId, contentId: newContentId, x: -transform.x / transform.k + window.innerWidth/2, y: -transform.y / transform.k + window.innerHeight/2, color: COLORS[Math.floor(Math.random() * COLORS.length)], };
+                graphData.current.nodes.push(newNode); simulationRef.current.nodes(graphData.current.nodes); simulationRef.current.alpha(1).restart(); setNodes([...graphData.current.nodes]);
+            };
+
+            const handleToggle = (parentId, segKey, targetContentId, color) => {
+                const stateKey = `${parentId}-${segKey}`;
+                if (expandedState[stateKey]) {
+                    const childId = expandedState[stateKey];
+                    const removeRecursive = (id, currentNodes, currentLinks, currentExp) => {
+                        let toRemove = new Set([id]);
+                        const findKids = (pid) => { Object.entries(currentExp).forEach(([k, cid]) => { if (k.startsWith(pid + '-')) { toRemove.add(cid); findKids(cid); delete currentExp[k]; } }); };
+                        findKids(id);
+                        return { nodes: currentNodes.filter(n => !toRemove.has(n.id)), links: currentLinks.filter(l => !toRemove.has(l.target.id || l.target)) };
+                    };
+                    const { nodes: nextNodes, links: nextLinks } = removeRecursive(childId, graphData.current.nodes, graphData.current.links, {...expandedState});
+                    const nextExp = {...expandedState}; delete nextExp[stateKey];
+                    graphData.current.nodes = nextNodes; graphData.current.links = nextLinks; setExpandedState(nextExp);
+                } else {
+                    if (!library[targetContentId]) { alert(`Content ID "${targetContentId}" not found.`); return; }
+                    const parent = graphData.current.nodes.find(n => n.id === parentId);
+                    const newId = `${targetContentId}_${Date.now()}`;
+                    const newNode = { id: newId, contentId: targetContentId, x: parent.x + (Math.random() - 0.5) * 50, y: parent.y + 150, color: color || parent.color };
+                    graphData.current.nodes.push(newNode); graphData.current.links.push({ source: parent.id, target: newNode.id });
+                    setExpandedState(prev => ({ ...prev, [stateKey]: newId }));
+                }
+                simulationRef.current.nodes(graphData.current.nodes); simulationRef.current.force("link").links(graphData.current.links); simulationRef.current.alpha(1).restart(); setNodes([...graphData.current.nodes]); setLinks([...graphData.current.links]);
+            };
+
+            const handleDragStart = (e, node) => {
+                if (e.button !== 0 || e.target.closest('.action-btn')) return; e.stopPropagation();
+                simulationRef.current.alphaTarget(0.3).restart(); node.fx = node.x; node.fy = node.y;
+                const svg = svgRef.current;
+                const move = (ev) => { const rect = svg.getBoundingClientRect(); node.fx = ((ev.clientX - rect.left) - transform.x) / transform.k; node.fy = ((ev.clientY - rect.top) - transform.y) / transform.k; };
+                const up = () => { simulationRef.current.alphaTarget(0); window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+                window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+            };
+
+            const handleSaveNode = (nodeId, newContentId, newData, newColor) => {
+                const node = graphData.current.nodes.find(n => n.id === nodeId);
+                if (node) {
+                    const oldContentId = node.contentId;
+                    node.color = newColor;
+                    
+                    setLibrary(prev => {
+                        const newLib = { ...prev };
+                        if (newContentId !== oldContentId) {
+                            // Rename: Add new, delete old
+                            newLib[newContentId] = newData;
+                            delete newLib[oldContentId];
+                            node.contentId = newContentId;
+                        } else {
+                            newLib[oldContentId] = newData;
+                        }
+                        return newLib;
+                    });
+                    setNodes([...graphData.current.nodes]);
+                }
+                setEditingNodeId(null);
+            };
+
+            const handleExport = () => {
+                const data = { library, scene: { nodes: graphData.current.nodes.map(n => ({ id: n.id, contentId: n.contentId, x: n.x, y: n.y, fx: n.fx, fy: n.fy, color: n.color })), links: graphData.current.links.map(l => ({ source: l.source.id || l.source, target: l.target.id || l.target })), expandedState } };
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});
+                const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'math_explorer_scene.json'; a.click();
+            };
+
+            const handleImport = (e) => {
+                const file = e.target.files[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (data.library && data.scene) {
+                            setLibrary(data.library); setExpandedState(data.scene.expandedState || {});
+                            graphData.current.nodes = data.scene.nodes; graphData.current.links = data.scene.links;
+                            simulationRef.current.nodes(graphData.current.nodes); simulationRef.current.force("link").links(graphData.current.links); simulationRef.current.alpha(1).restart();
+                            setNodes([...graphData.current.nodes]); setLinks([...graphData.current.links]);
+                        }
+                    } catch (err) { alert("Invalid JSON file"); }
+                };
+                reader.readAsText(file);
+            };
+
+            return (
+                <div className="app-container">
+                    <div className="grid-bg absolute inset-0 opacity-50 pointer-events-none"></div>
+                    <div className={`ui-panel nav-panel ${navOpen ? 'w-64' : 'w-12 h-12'}`}>
+                        <div className="ui-header" onClick={() => setNavOpen(!navOpen)}><div className="flex items-center gap-2"><i className="ri-menu-2-line text-lg"></i> {navOpen && t.explorer}</div>{navOpen && <i className="ri-arrow-up-s-line"></i>}</div>
+                        {navOpen && (
+                            <div className="ui-content flex-1 flex flex-col">
+                                <button className="w-full py-2 mb-3 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-2 text-sm font-medium" onClick={handleAddNode}><i className="ri-add-circle-line"></i> {t.newNode}</button>
+                                <div className="text-xs font-bold opacity-50 mb-2 mt-2">{t.sceneOutline}</div>
+                                <ul className="flex-1 overflow-y-auto space-y-1">
+                                    {nodes.map(n => (
+                                        <li key={n.id} className="p-2 hover:bg-black/5 cursor-pointer flex items-center gap-2 text-sm rounded transition-colors" onClick={() => { const svg = d3.select(svgRef.current); const tr = d3.zoomIdentity.translate(window.innerWidth/2 - n.x * transform.k, window.innerHeight/2 - n.y * transform.k).scale(transform.k); svg.transition().duration(750).call(d3.zoom().transform, tr); }}>
+                                            <div className="w-2 h-2 rounded-full" style={{ background: n.color || '#555' }}></div><span className="truncate flex-1">{library[n.contentId]?.title || "Untitled"}</span>{n.fx != null && <i className="ri-pushpin-fill text-xs opacity-50"></i>}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                    <div className={`ui-panel control-panel ${ctrlOpen ? 'w-64' : 'w-12 h-12'}`}>
+                        <div className="ui-header" onClick={() => setCtrlOpen(!ctrlOpen)}><div className="flex items-center gap-2"><i className="ri-settings-3-line text-lg"></i> {ctrlOpen && t.settings}</div>{ctrlOpen && <i className="ri-arrow-down-s-line"></i>}</div>
+                        {ctrlOpen && (
+                            <div className="ui-content space-y-4">
+                                <div><label className="editor-label">{t.language}</label><select className="editor-input" value={settings.lang} onChange={e => setSettings({...settings, lang: e.target.value})}><option value="en">English</option><option value="zh">中文</option></select></div>
+                                <div><label className="editor-label">{t.theme}</label><div className="flex gap-2">{Object.keys(THEME_PRESETS).map(key => <div key={key} className={`w-8 h-8 rounded border cursor-pointer ${settings.theme === key ? 'ring-2 ring-blue-500' : ''}`} style={{ background: THEME_PRESETS[key]['--bg'] }} onClick={() => setSettings({...settings, theme: key})} title={key} />)}</div></div>
+                                <div><label className="editor-label">{t.gravity}: {settings.gravity}</label><input type="range" className="w-full accent-blue-600" min="50" max="1000" value={settings.gravity} onChange={e => setSettings({...settings, gravity: +e.target.value})} /></div>
+                                <div><label className="editor-label">{t.distance}: {settings.distance}</label><input type="range" className="w-full accent-blue-600" min="100" max="500" value={settings.distance} onChange={e => setSettings({...settings, distance: +e.target.value})} /></div>
+                                <div className="flex items-center gap-2"><input type="checkbox" id="tooltip-check" checked={settings.showTooltips} onChange={e => setSettings({...settings, showTooltips: e.target.checked})} /><label htmlFor="tooltip-check" className="text-sm cursor-pointer select-none">{t.showTooltips}</label></div>
+                                <div className="pt-4 border-t flex gap-2"><button className="flex-1 py-1.5 border rounded hover:bg-gray-100 text-xs font-medium flex items-center justify-center gap-1" onClick={handleExport}><i className="ri-download-line"></i> {t.export}</button><label className="flex-1 py-1.5 border rounded hover:bg-gray-100 text-xs font-medium flex items-center justify-center gap-1 cursor-pointer"><i className="ri-upload-line"></i> {t.import}<input type="file" className="hidden" accept=".json" onChange={handleImport} /></label></div>
+                            </div>
+                        )}
+                    </div>
+                    {tooltip && settings.showTooltips && <div className="tooltip" style={{ top: tooltip.y + 15, left: tooltip.x + 15 }}><div className="tooltip-title">{tooltip.data.title}</div><RichViewer content={tooltip.data.content} type={tooltip.data.contentType || 'markdown'} /></div>}
+                    {editingNodeId && <NodeEditor node={nodes.find(n => n.id === editingNodeId)} content={library[nodes.find(n => n.id === editingNodeId).contentId]} onClose={() => setEditingNodeId(null)} onSave={handleSaveNode} lang={settings.lang} existingIds={Object.keys(library)} />}
+                    <div ref={svgRef} className="w-full h-full cursor-move">
+                        <div style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})`, transformOrigin: '0 0', width: '100%', height: '100%', position: 'absolute' }}>
+                            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">{links.map((l, i) => { const s = typeof l.source === 'object' ? l.source : nodes.find(n => n.id === l.source); const t = typeof l.target === 'object' ? l.target : nodes.find(n => n.id === l.target); if(!s || !t) return null; return <line key={i} x1={s.x} y1={s.y} x2={t.x} y2={t.y} stroke="var(--border)" strokeWidth="2" />; })}</svg>
+                            {nodes.map(node => <div key={node.id} style={{ position: 'absolute', transform: `translate(${node.x}px, ${node.y}px) translate(-50%, -50%)`, zIndex: 10 }}><MathNode node={node} content={library[node.contentId]} expandedSegments={Object.keys(expandedState).filter(k => k.startsWith(node.id))} onToggle={handleToggle} onHover={(e, data) => setTooltip(data ? { x: e.clientX, y: e.clientY, data } : null)} onDragStart={handleDragStart} onEdit={() => setEditingNodeId(node.id)} onPin={(node) => { if (node.fx != null) { node.fx = null; node.fy = null; } else { node.fx = node.x; node.fy = node.y; } simulationRef.current.alpha(0.1).restart(); setNodes([...graphData.current.nodes]); }} lang={settings.lang} /></div>)}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

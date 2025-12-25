@@ -1,0 +1,62 @@
+{
+  "library": {
+    "root": {
+      "title": "MathMap Demo",
+      "type": "default",
+      "template": "\\text{Welcome to } \\textcolor{#3b82f6}{\\text{MathMap}} \\\\ \\text{Explore: } {{0}}, {{1}}, {{2}}",
+      "note": "This is a **Concept Node**. It connects to other nodes.",
+      "segments": {
+        "0": { "text": "Axioms", "type": "link", "target": "axiom_logic", "color": "#dc2626" },
+        "1": { "text": "Constants", "type": "link", "target": "const_pi", "color": "#d97706" },
+        "2": { "text": "Parameters", "type": "link", "target": "param_alpha", "color": "#16a34a" }
+      }
+    },
+    "axiom_logic": {
+      "title": "Peano Axioms",
+      "type": "axiom",
+      "template": "1 \\in \\mathbb{N}",
+      "note": "This is an **Axiom Node** (Double Border). \n\nIt represents a fundamental truth.",
+      "segments": {}
+    },
+    "const_pi": {
+      "title": "Golden Ratio",
+      "type": "constant",
+      "template": "\\phi \\approx 1.618",
+      "note": "This is a **Constant Node** (Dashed Header). \n\nUsed for fixed values.",
+      "segments": {}
+    },
+    "param_alpha": {
+      "title": "Learning Rate",
+      "type": "parameter",
+      "template": "\\alpha = 0.01",
+      "note": "This is a **Parameter Node** (Rounded). \n\nRepresents tunable values.",
+      "segments": {}
+    },
+    "todo_list": {
+      "title": "Development Plan",
+      "type": "note",
+      "template": "",
+      "note": "- [x] Fix Colors\n- [x] Add Note Type\n- [ ] Export to PDF",
+      "segments": {}
+    }
+  },
+  "scene": {
+    "nodes": [
+      { "id": "n1", "contentId": "root", "x": 0, "y": 0, "color": "#0f172a", "fx": 0, "fy": 0 },
+      { "id": "n2", "contentId": "axiom_logic", "x": -200, "y": 150, "color": "#dc2626" },
+      { "id": "n3", "contentId": "const_pi", "x": 0, "y": 250, "color": "#d97706" },
+      { "id": "n4", "contentId": "param_alpha", "x": 200, "y": 150, "color": "#16a34a" },
+      { "id": "n5", "contentId": "todo_list", "x": 300, "y": -100, "color": "#f59e0b" }
+    ],
+    "links": [
+      { "source": "n1", "target": "n2" },
+      { "source": "n1", "target": "n3" },
+      { "source": "n1", "target": "n4" }
+    ],
+    "expandedState": {
+      "n1-0": "n2",
+      "n1-1": "n3",
+      "n1-2": "n4"
+    }
+  }
+}
