@@ -87,15 +87,28 @@ v = \frac{d {{pos}} }{d {{time}} }
 
 ## TODO
 
+- [x] add pixel theme 
+- [ ] update "minimal" style, only show formula with a simple border, the title and note are hidden by default, only show when hover. we need the node line connect formular interactive math elements with same key and next node border with a solid line.
 - [ ] muilt select nodes and drag to move, and give right click menu to align nodes (left, right, top, bottom, center), and also add muilt select options in the node panel (explorer, library)
-- [ ] add "minimal" style, only show formula with a simple border, the title and note are hidden by default, only show when hover. and the node line connect formular interactive math elements with same key and next node border with a solid line.
 - [ ] auto save and setting history version
 - [ ] add node libary management panel
 - [ ] add do/undo functionality
-- [ ] add pixel theme 
 - [ ] add export to png/svg/pdf
 - [ ] build as electron app
 
 ## FixMe
 
 - [ ] when we open explorer - item - right click - show, it take a long time to response. find bug
+
+
+> @[DIR] /home/amadeus/Public/FormularRender/newapp full understand project by reading src. right
+    now we are do this step in readme todo:- [ ] update "minimal" mode, only show formula with a 
+   simple border, the title and note are hidden by default, only show when hover. we need the node
+    line connect formular interactive math elements with same key and next node border with a 
+   solid line.// now, fix this: 1. minimal mode , the node distance should change we cursor not 
+   above (hover), this time the node is smaller, so realtime calculate node physics. and soild 
+   line link also need refresh when node expand/small  2. link to mathnode has no color, I want 
+   minimal mode has this style: link line directly link to formular element corner (whcih cornor 
+   need calculate), and a link color hover box on it (if this node link to a sub mathnode) so 
+   while minimal mode, this link line should above node ( when cursor not above) 3. all this can 
+   modify in setting panel

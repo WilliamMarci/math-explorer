@@ -192,6 +192,15 @@ const Explorer = ({
     const handleItemClick = (e, item) => {
         if (!item.activeNode) return;
         
+        // Custom Double Click Logic
+        const now = Date.now();
+        if (item.lastClickTime && now - item.lastClickTime < 200) {
+             if (item.activeNode) onFocusNode(item.activeNode);
+             item.lastClickTime = 0; // Reset
+             return;
+        }
+        item.lastClickTime = now;
+
         if (e.ctrlKey || e.metaKey) {
             // Toggle selection
             if (selectedNodeIds.includes(item.activeNode.id)) {
@@ -395,7 +404,7 @@ const Explorer = ({
                                 <div key={item.cId} draggable={!searchTerm} onDragStart={(e) => handleDragStart(e, index)} onDragEnter={(e) => handleDragEnter(e, index)} onDragEnd={handleDragEnd} onDragOver={(e) => e.preventDefault()}
                                     className={`group flex items-center gap-2 pl-10 pr-2 h-[32px] cursor-pointer transition-colors ${isSelected ? 'bg-blue-500/20' : hoverClass}`}
                                     onClick={(e) => handleItemClick(e, item)}
-                                    onDoubleClick={() => item.activeNode && onFocusNode(item.activeNode)} onContextMenu={(e) => handleContextMenu(e, item)}
+                                    onContextMenu={(e) => handleContextMenu(e, item)}
                                 >
                                     <div className={`flex-1 min-w-0 flex items-center justify-between ${!item.activeNode ? 'opacity-50 grayscale' : ''}`}>
                                         <div className="truncate text-xs font-medium leading-tight select-none text-[var(--text)]">{item.content.title || "Untitled"}</div>

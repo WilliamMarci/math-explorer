@@ -76,9 +76,10 @@ export const useCanvasInteraction = ({
     // --- Drag Logic ---
     const handleDragStart = useCallback((e, node) => {
         if (e.button !== 0 || e.target.closest('button')) return; 
-        e.stopPropagation();
         
-        if (viewMode) return;
+        if (viewMode) return; // Don't stop propagation, so it bubbles to zoom handler (panning)
+        
+        e.stopPropagation();
 
         setFocusedNodeId(node.id);
         

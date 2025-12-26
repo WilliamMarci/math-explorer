@@ -50,6 +50,21 @@ const AppearanceSettings = ({ settings, setSettings, t }) => {
                 />
             </div>
 
+            {settings.minimalMode && (
+                <div className="pl-2 space-y-2 border-l-2 border-[var(--border)] ml-1 mb-2">
+                    <div className="flex items-center justify-between">
+                        <label htmlFor="segment-highlight-check" className="text-[10px] font-bold opacity-70 uppercase cursor-pointer select-none">{t.segmentHighlights || "Show Highlights"}</label>
+                        <input 
+                            type="checkbox" 
+                            id="segment-highlight-check" 
+                            className="toggle-switch scale-75 origin-right" 
+                            checked={settings.segmentHighlights !== false} 
+                            onChange={e => setSettings({...settings, segmentHighlights: e.target.checked})} 
+                        />
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center justify-between">
                 <label htmlFor="tooltip-check" className="text-xs font-bold cursor-pointer select-none">{t.showTooltips}</label>
                 <input 

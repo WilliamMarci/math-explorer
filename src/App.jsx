@@ -36,6 +36,7 @@ const App = () => {
     const [tooltip, setTooltip] = useState(null);
     const [editingNodeId, setEditingNodeId] = useState(null);
     const [focusedNodeId, setFocusedNodeId] = useState(null);
+    const [hoveredNodeId, setHoveredNodeId] = useState(null);
     
     // UI & Logic State
     const [showExportModal, setShowExportModal] = useState(false);
@@ -64,6 +65,9 @@ const App = () => {
         showTooltips: true, showMinimap: true, lang: 'en',
         showEdgeLabels: true, edgeLabelMode: 'side', edgeLabelBg: 'none',
         minimalMode: false,
+        segmentHighlights: true,
+        minimalGapRatio: 0.5,
+        collisionPadding: 10,
         pixelMode: false,
         pixelFont: true,
         pixelMath: true
@@ -97,7 +101,7 @@ const App = () => {
         setContextMenu({ visible: true, x: e.clientX, y: e.clientY, type: 'canvas', targetId: null });
     };
 
-    const { simulationRef, zoomBehavior } = useSimulation(graphData, svgRef, settings, library, setNodes, setLinks, setTransform, handleCanvasContextMenu, isSpacePressed, viewModeRef);
+    const { simulationRef, zoomBehavior } = useSimulation(graphData, svgRef, settings, library, setNodes, setLinks, setTransform, handleCanvasContextMenu, isSpacePressed, viewModeRef, hoveredNodeId);
 
     // --- Helpers ---
     const updateSimulation = useCallback(() => {
@@ -335,8 +339,8 @@ const App = () => {
     // handleDragStart is now provided by useCanvasInteraction
 
     const handlePinNode = (node) => {
-        if (node.fx != null) { node.fx = null; node.fy = null; } 
-        else { node.fx = node.x; node.fy = node.y; } 
+        if (node.fx != null && !node._tempFixed) { node.fx = null; node.fy = null; } 
+        else { node.fx = node.x; node.fy = node.y; node._tempFixed = false; } 
         simulationRef.current.alpha(0.1).restart(); 
         setNodes([...graphData.current.nodes]);
     };
@@ -551,6 +555,9 @@ const App = () => {
                 viewMode={viewMode}
                 selectionBox={selectionBox}
                 onCanvasMouseDown={handleCanvasMouseDown}
+                hoveredNodeId={hoveredNodeId}
+                onNodeHover={setHoveredNodeId}
+                onFocusNode={handleFocusNode}
                 icons={icons}
             />
         </div>

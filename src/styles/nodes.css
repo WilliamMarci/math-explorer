@@ -242,6 +242,8 @@
     width: auto;
     border-radius: 0;
     padding: 0;
+    /* box-shadow: none; */
+    /* border: 2px solid var(--border); */
 }
 
 /* Ensure note nodes in minimal mode have some width if they have content */

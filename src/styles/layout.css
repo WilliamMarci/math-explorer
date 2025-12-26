@@ -147,12 +147,17 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
     max-width: 320px; 
     border-radius: 8px; 
+    color: var(--note-text);
 }
 
 /* FIX: Allow tooltip to expand freely if it contains an SVG */
 .tooltip:has(.tooltip-svg) {
     max-width: none;
     width: fit-content;
+}
+
+.tooltip .markdown-body {
+    color: var(--note-text) !important;
 }
 
 /* SVG in tooltip should not be constrained */

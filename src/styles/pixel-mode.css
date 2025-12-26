@@ -73,7 +73,8 @@
 .pixel-mode .btn:active,
 .pixel-mode .btn-icon:active {
     transform: translate(2px, 2px);
-    box-shadow: none;
+    /* box-shadow: none; */ /* Keep shadow or use transparent to avoid visibility issues */
+    box-shadow: 0 0 0 transparent;
 }
 
 /* Node Card Overrides */
