@@ -95,3 +95,5 @@ v = \frac{d {{pos}} }{d {{time}} }
 - [ ] add pixel theme 
 - [ ] add export to png/svg/pdf
 - [ ] build as electron app
+
+Fix
