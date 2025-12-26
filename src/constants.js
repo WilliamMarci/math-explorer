@@ -1,0 +1,71 @@
+import { COLORS } from './theme';
+
+export const I18N = {
+    en: {
+        explorer: "Explorer", settings: "Settings", newNode: "New Node", sceneOutline: "SCENE OUTLINE",
+        theme: "Theme", gravity: "Gravity", centering: "Centering", distance: "Distance", showTooltips: "Show Tooltips",
+        showMinimap: "Show Minimap", PHYandLAY: "Physics & Layout",searchText: "Search...", livePreview: "Live Preview",
+        language: "Language", export: "Export", import: "Import", editNode: "Edit Node Content",
+        id: "Unique ID", idHelp: "Only letters, numbers, and underscores.",
+        title: "Title", type: "Type", color: "Color", template: "LaTeX Template",
+        segments: "Interactive Segments", addSegment: "Add Segment", note: "Note (Markdown)",
+        cancel: "Cancel", save: "Save Changes", delete: "Delete Node", tooltipSettings: "Tooltip Settings",
+        customizeConnection: "Customize Connection", edgeLabel: "Edge Label", lineStyle: "Line Style",
+        stroke: "Stroke", endpoint: "Endpoint", showArrowInMiddle: "Show Arrow in Middle",
+        showEdgeLabels: "Show Edge Labels", edgeLabelMode: "Label Position", edgeLabelBg: "Label Background",
+        minimapLabel: "Minimap Label", id: "ID", title: "Title", none: "None",
+        expandAll: "Expand All", autoArrange: "Auto Arrange",
+        types: { default: "Default", axiom: "Axiom", constant: "Constant", parameter: "Parameter", note: "Note" }
+    },
+    zh: {
+        explorer: "资源管理器", settings: "设置", newNode: "新建节点", sceneOutline: "场景大纲",
+        theme: "主题", gravity: "斥力强度", centering: "引力强度", distance: "连线距离", showTooltips: "显示提示框",
+        showMinimap: "显示小地图", PHYandLAY: "物理与布局",searchText: "搜索...",livePreview: "实时预览",
+        language: "语言", export: "导出", import: "导入", editNode: "编辑节点内容",
+        id: "ID", idHelp: "仅限字母、数字和下划线。",
+        title: "标题", type: "类型", color: "颜色", template: "LaTeX 模板",
+        segments: "交互片段", addSegment: "添加片段", note: "备注 (Markdown)",
+        cancel: "取消", save: "保存更改", delete: "删除节点", tooltipSettings: "提示框设置",
+        customizeConnection: "自定义连线", edgeLabel: "连线标签", lineStyle: "连线样式",
+        stroke: "线条", endpoint: "终点", showArrowInMiddle: "显示中间箭头",
+        showEdgeLabels: "显示连线标签", edgeLabelMode: "标签位置", edgeLabelBg: "标签背景",
+        minimapLabel: "小地图标签", id: "ID", title: "标题", none: "无",
+        expandAll: "展开全部", autoArrange: "自动排列",
+        types: { default: "默认", axiom: "公理", constant: "常数", parameter: "参数", note: "注释" }
+    },
+    fr: {
+        explorer: "Explorateur", settings: "Paramètres", newNode: "Nouveau Nœud", sceneOutline: "PLAN DE SCÈNE",
+        theme: "Thème", gravity: "Gravité", centering: "Centrage", distance: "Distance", showTooltips: "Afficher les info-bulles",
+        showMinimap: "Afficher la mini-carte", PHYandLAY: "Physique & Disposition", searchText: "Recherche...", livePreview: "Aperçu en direct",
+        language: "Langue", export: "Exporter", import: "Importer", editNode: "Modifier le contenu du nœud",
+        id: "ID", idHelp: "Lettres, chiffres et underscores uniquement.",
+        title: "Titre", type: "Type", color: "Couleur", template: "Modèle LaTeX",
+        segments: "Segments interactifs", addSegment: "Ajouter un segment", note: "Note (Markdown)",
+        cancel: "Annuler", save: "Enregistrer les modifications", delete: "Supprimer le nœud", tooltipSettings: "Paramètres des info-bulles",
+        customizeConnection: "Personnaliser la connexion", edgeLabel: "Étiquette de connexion", lineStyle: "Style de ligne",
+        stroke: "Trait", endpoint: "Extrémité", showArrowInMiddle: "Afficher la flèche au milieu",
+        showEdgeLabels: "Afficher les étiquettes de connexion", edgeLabelMode: "Position de l'étiquette", edgeLabelBg: "Fond de l'étiquette",
+        minimapLabel: "Étiquette de la mini-carte", id: "ID", title: "Titre", none: "Aucun",
+        expandAll: "Tout développer", autoArrange: "Arrangement automatique",
+        types: { default: "Défaut", axiom: "Axiome", constant: "Constante", parameter: "Paramètre", note: "Note" }
+    },
+    jp: {
+        explorer: "エクスプローラー", settings: "設定", newNode: "新しいノード", sceneOutline: "シーン概要",
+        theme: "テーマ", gravity: "重力", centering: "中心化", distance: "距離", showTooltips: "ツールチップを表示",
+        showMinimap: "ミニマップを表示", PHYandLAY: "物理とレイアウト", searchText: "検索...", livePreview: "ライブプレビュー",
+        language: "言語", export: "エクスポート", import: "インポート", editNode: "ノード内容を編集",
+        id: "ID", idHelp: "英数字とアンダースコアのみ。",
+        title: "タイトル", type: "タイプ", color: "色", template: "LaTeX テンプレート",
+        segments: "インタラクティブセグメント", addSegment: "セグメントを追加", note: "ノート (Markdown)",
+        cancel: "キャンセル", save: "変更を保存", delete: "ノードを削除", tooltipSettings: "ツールチップ設定",
+        customizeConnection: "接続をカスタマイズ", edgeLabel: "エッジラベル", lineStyle: "線のスタイル",
+        stroke: "ストローク", endpoint: "エンドポイント", showArrowInMiddle: "中央に矢印を表示",
+        showEdgeLabels: "エッジラベルを表示", edgeLabelMode: "ラベル位置", edgeLabelBg: "ラベル背景",
+        minimapLabel: "ミニマップラベル", id: "ID", title: "タイトル", none: "なし",
+        expandAll: "すべて展開", autoArrange: "自動配置",
+        types: { default: "デフォルト", axiom: "公理", constant: "定数", parameter: "パラメータ", note: "ノート" }
+    },
+};
+
+export const FALLBACK_LIBRARY = { "root": { title: "Start Here", type: "default", template: "\\text{Welcome}", note: "Click 'New Node' to begin.", segments: {} } };
+export const FALLBACK_NODES = [ { id: "node-root", contentId: "root", x: window.innerWidth / 2, y: window.innerHeight / 2, color: COLORS[0] } ];

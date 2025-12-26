@@ -1,0 +1,106 @@
+/* ==========================================================================
+   UI Components
+   ========================================================================== */
+
+/* --- Buttons --- */
+.btn {
+    @apply px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer border shadow-sm;
+    border-color: var(--border);
+    color: var(--text);
+    background: var(--card-bg);
+}
+.btn:hover { filter: brightness(0.95); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+    @apply text-white border-transparent;
+    background-color: var(--accent);
+}
+.btn-primary:hover { filter: brightness(1.1); }
+
+/* --- Split Button --- */
+.split-btn-group {
+    display: flex;
+    align-items: stretch; 
+    height: 28px; 
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.split-btn-main {
+    @apply bg-blue-500 text-white px-3 text-xs font-medium hover:bg-blue-600 transition-colors flex items-center gap-1;
+    border-right: 1px solid rgba(255,255,255,0.2);
+    flex: 1;
+    justify-content: center;
+}
+.split-btn-arrow {
+    @apply bg-blue-500 text-white px-2 hover:bg-blue-600 transition-colors cursor-pointer flex items-center justify-center;
+    width: 24px;
+}
+.split-dropdown {
+    position: absolute;
+    top: 100%; right: 0;
+    margin-top: 4px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 50;
+    min-width: 140px;
+    overflow: hidden;
+    animation: fadeIn 0.1s ease-out;
+}
+.split-dropdown-item {
+    @apply px-3 py-2 text-xs cursor-pointer hover:bg-slate-100 flex items-center gap-2;
+    color: var(--text);
+}
+
+/* --- Inputs --- */
+.input-field {
+    @apply w-full px-2 py-1.5 rounded border text-xs transition-all outline-none;
+    background: var(--bg);
+    border-color: var(--border);
+    color: var(--text);
+}
+.input-field:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--shadow);
+}
+
+/* --- Toggles & Sliders --- */
+.toggle-switch {
+    position: relative;
+    width: 36px; height: 20px;
+    appearance: none;
+    background: #cbd5e1;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.toggle-switch:checked { background: var(--accent); }
+.toggle-switch:checked::after { transform: translateX(16px); }
+
+.modern-range {
+    @apply w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+}
+.modern-range::-webkit-slider-thumb {
+    @apply appearance-none w-4 h-4 rounded-full bg-white border border-gray-300 shadow-sm transition-transform;
+    margin-top: -5px; 
+}
+.modern-range::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.modern-range::-webkit-slider-runnable-track { @apply h-1.5 rounded-lg; background: var(--border); }
+
+.label-text {
+    @apply block text-[10px] font-bold uppercase tracking-wider mb-1.5 mt-3;
+    color: var(--muted);
+}

@@ -20,6 +20,7 @@ export const InteractiveMath = ({ template, segments, nodeId, onToggle, onHover 
 
     const finalLatex = useMemo(() => {
         if (!template) return "";
+        // 保持你原有的正则，只匹配 \w+ (字母数字下划线)
         return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
             const seg = segments?.[key];
             if (!seg) return "\\text{?}"; 
@@ -42,6 +43,7 @@ export const InteractiveMath = ({ template, segments, nodeId, onToggle, onHover 
                 katex.render(finalLatex, containerRef.current, { 
                     throwOnError: false, 
                     trust: true, // Required for \htmlId and \htmlClass
+                    displayMode: true, // <--- 确保开启 Display Mode
                     strict: false
                 });
             } catch (e) {
@@ -69,7 +71,16 @@ export const InteractiveMath = ({ template, segments, nodeId, onToggle, onHover 
             if (seg && seg.type === 'link') { 
                 e.stopPropagation(); 
                 e.preventDefault();
-                onToggle(nodeId, key, seg.target, seg.color); 
+                // --- 仅修改此处：传递 label 和 style ---
+                onToggle(
+                    nodeId, 
+                    key, 
+                    seg.target, 
+                    seg.color, 
+                    seg.connectionLabel, // New
+                    seg.connectionStyle  // New
+                ); 
+                // -----------------------------------
             }
         };
 
@@ -133,7 +144,7 @@ export const RichViewer = ({ content, type = 'markdown', className, inline = fal
                 
                 renderMathInElement(ref.current, { 
                     delimiters: [
-                        {left: "$$", right: "$$", display: false}, 
+                        {left: "$$", right: "$$", display: true}, 
                         {left: "$", right: "$", display: false}
                     ], 
                     throwOnError: false 

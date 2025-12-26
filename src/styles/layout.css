@@ -1,0 +1,172 @@
+/* ==========================================================================
+   Minimap
+   ========================================================================== */
+.minimap-container {
+    position: fixed;
+    top: 24px; right: 24px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 90; 
+    overflow: hidden;
+    transition: opacity 0.2s;
+}
+.minimap-container:hover {
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+.minimap-resize-handle {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 16px; height: 16px;
+    cursor: sw-resize;
+    background: linear-gradient(45deg, transparent 50%, var(--border) 50%);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+.minimap-container:hover .minimap-resize-handle { opacity: 1; }
+
+.minimap-viewport {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+}
+
+/* ==========================================================================
+   Editor Modal
+   ========================================================================== */
+.modal-overlay { 
+    position: fixed; inset: 0; z-index: 200; 
+    background: rgba(0,0,0,0.4); 
+    backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; 
+}
+.editor-modal { 
+    background: #ffffff; 
+    color: #0f172a;
+    width: 90%; max-width: 900px; max-height: 90vh; 
+    overflow-y: auto; 
+    border-radius: 12px; 
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    display: flex; flex-direction: column;
+}
+.editor-header {
+    padding: 16px 24px; border-bottom: 1px solid #e2e8f0;
+    display: flex; justify-content: space-between; align-items: center;
+    background: #f8fafc;
+}
+.editor-body { padding: 24px; overflow-y: auto; flex: 1; }
+.editor-footer {
+    padding: 16px 24px; border-top: 1px solid #e2e8f0;
+    display: flex; justify-content: space-between; align-items: center;
+    background: #f8fafc;
+}
+
+/* ==========================================================================
+   UI Panels
+   ========================================================================== */
+.ui-panel { 
+    position: fixed; background: var(--card-bg); border: 1px solid var(--border); 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 100; border-radius: 12px; 
+    color: var(--text); display: flex; flex-direction: column;
+    transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+                background 0.3s;
+    overflow: hidden;
+}
+
+.panel-content-wrapper {
+    width: 16rem; /* w-64 */
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    visibility: hidden;
+    display: flex; flex-direction: column; height: 100%;
+}
+.ui-panel.open .panel-content-wrapper {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+    visibility: visible;
+    transition-delay: 0.1s;
+}
+
+.nav-panel { top: 24px; left: 24px; max-height: 80vh; }
+.control-panel { bottom: 24px; left: 24px; }
+
+.ui-header { 
+    padding: 0 12px; height: 40px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between; 
+    cursor: pointer; font-weight: 600; font-size: 13px; user-select: none; 
+    border-bottom: 1px solid transparent;
+}
+.ui-header:hover { background: rgba(0,0,0,0.03); }
+.ui-content { padding: 16px; overflow-y: auto; }
+
+/* --- Context Menu --- */
+.context-menu {
+    position: fixed;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 9999;
+    min-width: 140px;
+    animation: fadeIn 0.1s ease-out;
+}
+.context-menu-item {
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.context-menu-item:hover {
+    background: var(--accent);
+    color: white;
+}
+.context-menu-item.danger:hover {
+    background: #ef4444;
+}
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+/* ==========================================================================
+   Tooltip
+   ========================================================================== */
+/* Default text tooltip */
+.tooltip { 
+    position: fixed; background: var(--card-bg); border: 1px solid var(--border); 
+    padding: 12px; font-size: 13px; pointer-events: none; z-index: 1000; 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+    max-width: 320px; 
+    border-radius: 8px; 
+}
+
+/* FIX: Allow tooltip to expand freely if it contains an SVG */
+.tooltip:has(.tooltip-svg) {
+    max-width: none;
+    width: fit-content;
+}
+
+/* SVG in tooltip should not be constrained */
+.tooltip-svg svg { 
+    /* Respect SVG width attribute if present, otherwise use min-width */
+    width: auto;
+    min-width: 300px; /* Fallback for viewBox-only SVGs */
+    height: auto; 
+    display: block; 
+}
+
+.pin-icon-active {
+    color: var(--accent);
+    margin-left: auto; 
+    transform: rotate(-45deg);
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}

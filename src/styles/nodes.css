@@ -1,0 +1,230 @@
+/* ==========================================================================
+   Graph & Nodes
+   ========================================================================== */
+.scene-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    transform-origin: 0 0;
+    overflow: visible; 
+}
+
+.link-layer {
+    position: absolute; inset: 0; 
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 0; 
+}
+.link-line {
+    stroke: var(--border);
+    stroke-width: 2px;
+    transition: stroke 0.3s;
+}
+
+.node-wrapper { 
+    position: absolute; 
+    transform: translate(-50%, -50%);
+    cursor: grab; 
+    z-index: 10;
+}
+.node-wrapper:active { cursor: grabbing; z-index: 20; }
+
+/* --- Math Card (Adaptive Layout) --- */
+.math-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    
+    display: inline-flex;
+    flex-direction: column;
+    
+    width: fit-content; 
+    min-width: 240px; 
+    max-width: none; 
+    
+    box-shadow: 0 4px 6px -1px var(--shadow), 0 2px 4px -1px var(--shadow);
+    border-radius: 10px;
+    position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: visible; 
+}
+.math-card:hover { 
+    transform: translateY(-4px); 
+    box-shadow: 0 20px 25px -5px var(--shadow), 0 10px 10px -5px var(--shadow); 
+    z-index: 50; 
+}
+
+/* Pinned Style */
+.math-card.pinned .node-actions > *,
+.math-card.pinned .node-actions button,
+.math-card.pinned .node-actions div {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.math-card.pinned .ri-pushpin-line,
+.math-card.pinned .ri-pushpin-fill {
+    color: #3b82f6; 
+    /* filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.8)); */
+    transform: scale(1.15);
+    transition: all 0.3s ease;
+}
+
+/* --- Node Header & Actions --- */
+.node-header {
+    padding: 12px 14px;
+    display: flex; 
+    justify-content: flex-start; 
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid transparent;
+    padding-right: 60px; 
+    min-height: 48px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.node-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    opacity: 0.95;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.type-badge {
+    font-size: 10px; 
+    padding: 3px 8px; 
+    border-radius: 6px; 
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
+.node-actions { 
+    position: absolute; 
+    top: 8px; 
+    right: 8px; 
+    display: flex; 
+    gap: 6px; 
+    opacity: 0; 
+    transform: scale(0.9);
+    transition: all 0.2s ease; 
+    z-index: 20; 
+}
+.math-card:hover .node-actions, .math-card.pinned .node-actions { 
+    opacity: 1; 
+    transform: scale(1);
+}
+
+/* --- Node Body --- */
+.node-body { 
+    padding: 16px; 
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- Node Type Visuals --- */
+.node-type-default { border-left: 5px solid var(--node-color); }
+.node-type-default .node-header { background: linear-gradient(to right, rgba(0,0,0,0.02), transparent); }
+
+.node-type-axiom { 
+    border: 3px double var(--node-color); 
+    border-left: 5px solid var(--node-color); 
+    box-shadow: 0 4px 0 rgba(0,0,0,0.05); 
+}
+.node-type-axiom .node-header { 
+    font-family: serif; 
+    background: linear-gradient(to right, rgba(0,0,0,0.04), transparent);
+    border-bottom-color: rgba(0,0,0,0.05);
+}
+.node-type-axiom .node-title { font-family: serif; font-size: 16px; }
+
+.node-type-constant { 
+    border: 1px solid var(--muted); border-left: 5px solid var(--node-color); 
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px);
+}
+.node-type-constant .node-header { font-family: monospace; border-bottom: 1px dashed var(--border); }
+.node-type-constant .node-title { font-family: monospace; }
+
+.node-type-parameter { 
+    border: 2px dashed var(--border); border-left: 5px solid var(--node-color); border-radius: 16px; 
+}
+.node-type-parameter .node-header { font-style: italic; }
+
+.node-type-note {
+    background-color: var(--card-bg); 
+    color: var(--text); 
+    border: 1px solid var(--border);
+    border-top: 5px solid var(--node-color); 
+    border-radius: 10px;
+    box-shadow: 0 4px 6px -1px var(--shadow);
+}
+.node-type-note .node-header { 
+    border-bottom: 1px dashed var(--border); 
+    padding-bottom: 8px; 
+}
+.node-type-note .node-body > .markdown-body { 
+    border-top: none; 
+    margin-top: 0; 
+    padding-top: 8px; 
+}
+
+/* --- Interactive Math --- */
+.interactive-math-container { 
+    white-space: nowrap; 
+    overflow: visible; 
+    padding-bottom: 6px; 
+    font-size: 1.15em;
+    width: fit-content;
+    min-width: 100%;
+    align-self: flex-start;
+}
+
+/* Interactive Math Elements - RESTORED USER VERSION */
+.interactive-math-elem { 
+    cursor: pointer; 
+    pointer-events: auto !important; 
+    
+    /* Expand vertical hit area safely */
+    padding: 2px 1px;
+    /* Compensate horizontal padding to prevent layout shift */
+    margin: 0 -1px;
+    
+    border-radius: 3px;
+    transition: background-color 0.15s;
+    
+    /* Default transparent background */
+    background-color: transparent;
+}
+
+.interactive-math-elem:hover { 
+    /* Visual Feedback: A subtle box background that matches the hit area exactly */
+    background-color: rgba(18, 109, 255, 0.15);
+    
+    /* Optional: Accent color for text to increase contrast slightly */
+    color: var(--accent);
+}
+
+/* --- Note (Markdown) --- */
+.node-body > .markdown-body { 
+    margin-top: 12px; 
+    padding-top: 8px; 
+    border-top: 1px dashed var(--border); 
+    font-size: 13px; 
+    line-height: 1.6; 
+    color: var(--muted) !important;
+    width: 0;
+    min-width: 100%;
+    white-space: normal; 
+    word-wrap: break-word; 
+    overflow-wrap: break-word;
+}
+.node-body > .markdown-body p { margin-bottom: 0.5em; }
+.node-body > .markdown-body p:last-child { margin-bottom: 0; }
+.node-body > .markdown-body a { color: var(--accent); text-decoration: underline; }

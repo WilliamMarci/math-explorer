@@ -38,7 +38,7 @@
       }
     },
     "stress_tensor": {
-      "title": "Cauchy Stress Tensor ($$\\sigma$$)",
+      "title": "Cauchy Stress Tensor ($\\sigma$)",
       "type": "constant",
       "template": "\\sigma = \\begin{pmatrix} {{0}} & {{1}} \\\\ {{2}} & {{3}} \\end{pmatrix}",
       "note": "Second-order tensor (matrix) describing internal stresses; matrix entries can be explored.",
@@ -53,7 +53,7 @@
       "__note_inserted_nodes": false
     },
     "stress_a": {
-      "title": "$$\\sigma_{xx}$$",
+      "title": "$\\sigma_{xx}$",
       "type": "constant",
       "template": "\\sigma_{xx}",
       "note": "Matrix element (xx)",
@@ -62,21 +62,21 @@
       }
     },
     "stress_b": {
-      "title": "$$\\sigma_{xy}$$",
+      "title": "$\\sigma_{xy}$",
       "type": "constant",
       "template": "\\sigma_{xy}",
       "note": "Matrix element (xy)",
       "segments": { "0": { "text": "\\sigma_{xy}", "type": "text" } }
     },
     "stress_c": {
-      "title": "$$\\sigma_{yx}$$",
+      "title": "$\\sigma_{yx}$",
       "type": "constant",
       "template": "\\sigma_{yx}",
       "note": "Matrix element (yx)",
       "segments": { "0": { "text": "\\sigma_{yx}", "type": "text" } }
     },
     "stress_d": {
-      "title": "$$\\sigma_{yy}$$",
+      "title": "$\\sigma_{yy}$",
       "type": "constant",
       "template": "\\sigma_{yy}",
       "note": "Matrix element (yy)",
@@ -153,7 +153,7 @@
       "segments": { "0": { "text": "\\ln(x)", "type": "text", "tooltip": { "title": "ln(x)", "content": "<svg viewBox=\"0 0 1200 480\" xmlns=\"http://www.w3.org/2000/svg\"><defs><pattern id=\"grid\" width=\"60\" height=\"60\" patternUnits=\"userSpaceOnUse\"><path d=\"M60 0 L0 0 0 60\" fill=\"none\" stroke=\"#cbd5e1\" stroke-width=\"1\"/></pattern></defs><rect width=\"1200\" height=\"480\" rx=\"12\" fill=\"#f8fafc\"/><rect width=\"1200\" height=\"480\" fill=\"url(#grid)\" opacity=\"0.6\"/><g stroke=\"#0f172a\" stroke-width=\"2\"><line x1=\"0\" y1=\"240\" x2=\"1200\" y2=\"240\"/><line x1=\"60\" y1=\"0\" x2=\"60\" y2=\"480\"/></g><path d=\"M24 420 C180 360,360 300,600 240 C840 180,1080 144,1176 120\" stroke=\"#6b7280\" fill=\"none\" stroke-width=\"4\"/></svg>", "contentType": "svg" } } }
     },
     "viscosity": {
-      "title": "Viscosity ($$\\mu$$)",
+      "title": "Viscosity ($\\mu$)",
       "type": "constant",
       "template": "\\mu = \\text{dynamic viscosity}",
       "note": "Material property; linked from viscous term in Navier–Stokes.",
@@ -185,7 +185,7 @@
       }
     },
     "vorticity": {
-      "title": "Vorticity $$\\omega$$",
+      "title": "Vorticity $\\omega$",
       "type": "constant",
       "template": "\\omega = \\nabla \\times {{0}}",
       "note": "Local rotation of fluid; represented with an SVG sketch; does not link back to Navier–Stokes to avoid bidirectional linking.",

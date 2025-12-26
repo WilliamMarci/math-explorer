@@ -16,7 +16,8 @@ const MathNode = ({
     onPin, 
     onContextMenu, 
     lang, 
-    I18N 
+    I18N,
+    isSelected
 }) => {
     const baseColor = node.color || COLORS[0];
     const isPinned = node.fx !== null && node.fx !== undefined;
@@ -29,15 +30,16 @@ const MathNode = ({
 
     return (
         <div 
-            className="node-wrapper" 
+            className={`node-wrapper ${isSelected ? 'selected' : ''}`}
             style={{ 
                 transform: `translate(${node.x}px, ${node.y}px) translate(-50%, -50%)`,
-                '--node-color': baseColor
+                '--node-color': baseColor,
+                zIndex: isSelected ? 10 : undefined // Bring selected to front?
             }} 
             onMouseDown={(e) => onDragStart(e, node)}
-            onContextMenu={onContextMenu}
+            onContextMenu={(e) => onContextMenu(e, node)}
         >
-            <div className={`math-card ${isPinned ? 'pinned' : ''} node-type-${nodeType}`}>
+            <div className={`math-card ${isPinned ? 'pinned' : ''} node-type-${nodeType} ${isSelected ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}>
                 {/* Header */}
                 <div className="node-header">
                     {showBadge && (
@@ -64,7 +66,7 @@ const MathNode = ({
                     </button>
                     <button 
                         className="btn-icon" 
-                        onClick={(e) => { e.stopPropagation(); onEdit(node); }}
+                        onClick={(e) => { e.stopPropagation(); onEdit(node.id); }}
                         title="Edit Content"
                     >
                         <i className="ri-edit-line"></i>
@@ -81,6 +83,11 @@ const MathNode = ({
                             onToggle={onToggle} 
                             onHover={onHover} 
                         />
+                    )}
+                    {content.svg && (
+                        <div className="node-svg-container" style={{ textAlign: 'center', margin: '10px 0' }}>
+                            <RichViewer content={content.svg} type="svg" />
+                        </div>
                     )}
                     {content.note && <RichViewer content={content.note} type="markdown" />}
                 </div>

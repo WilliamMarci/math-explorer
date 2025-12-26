@@ -1,3 +1,10 @@
+/**
+ * Theme Definitions
+ * Contains color palettes, theme presets, and node types.
+ */
+
+// --- Theme Presets ---
+// Defines CSS variables for different visual themes
 export const THEME_PRESETS = {
     classic: {
         '--bg': '#f8fafc',
@@ -10,6 +17,18 @@ export const THEME_PRESETS = {
         '--shadow': 'rgba(0,0,0,0.08)',
         '--accent': '#3b82f6',
         '--muted': '#64748b'
+    },
+    sepia: {
+        '--bg': '#fdf6e3',
+        '--grid': '#eee8d5',
+        '--card-bg': '#fdf6e3',
+        '--panel-bg': '#fdf6e3',
+        '--input-bg': '#eee8d5',
+        '--text': '#586e75',
+        '--border': '#d33682',
+        '--shadow': 'rgba(0,0,0,0.1)',
+        '--accent': '#b58900',
+        '--muted': '#93a1a1'
     },
     blackboard: {
         '--bg': '#1e293b',
@@ -35,30 +54,22 @@ export const THEME_PRESETS = {
         '--accent': '#93c5fd',
         '--muted': '#bfdbfe'
     },
-    sepia: {
-        '--bg': '#fdf6e3',
-        '--grid': '#eee8d5',
-        '--card-bg': '#fdf6e3',
-        '--panel-bg': '#fdf6e3',
-        '--input-bg': '#eee8d5',
-        '--text': '#586e75',
-        '--border': '#d33682',
-        '--shadow': 'rgba(0,0,0,0.1)',
-        '--accent': '#b58900',
-        '--muted': '#93a1a1'
-    }
 };
 
+// --- Global Colors ---
+// Used for node colors and other UI elements
 export const COLORS = [
-    '#0f172a',
-    '#dc2626',
-    '#ea580c',
-    '#d97706',
-    '#16a34a',
-    '#2563eb',
-    '#4f46e5',
-    '#9333ea',
-    '#db2777'
+    '#0f172a', // Slate 900
+    '#dc2626', // Red 600
+    '#ea580c', // Orange 600
+    '#d97706', // Amber 600
+    '#16a34a', // Green 600
+    '#2563eb', // Blue 600
+    '#4f46e5', // Indigo 600
+    '#9333ea', // Purple 600
+    '#db2777'  // Pink 600
 ];
 
+// --- Node Types ---
+// Defines available types for nodes
 export const NODE_TYPES = ['default', 'axiom', 'constant', 'parameter', 'note'];

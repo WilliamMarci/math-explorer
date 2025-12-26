@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { THEME_PRESETS } from '../theme';
 
 // --- Minimap Component ---
-const Minimap = ({ nodes, links, transform, visible }) => {
+const Minimap = ({ nodes, links, transform, visible, labelType, library }) => {
     const [size, setSize] = useState({ w: 240, h: 160 });
     const [isResizing, setIsResizing] = useState(false);
 
@@ -47,7 +47,22 @@ const Minimap = ({ nodes, links, transform, visible }) => {
                     if(!s || !t) return null;
                     return <line key={i} x1={mapX(s.x)} y1={mapY(s.y)} x2={mapX(t.x)} y2={mapY(t.y)} stroke="var(--text)" strokeOpacity="0.2" strokeWidth="1" />;
                 })}
-                {nodes.map(n => <circle key={n.id} cx={mapX(n.x)} cy={mapY(n.y)} r={3} fill={n.color || '#94a3b8'} />)}
+                {nodes.map(n => (
+                    <g key={n.id}>
+                        <circle cx={mapX(n.x)} cy={mapY(n.y)} r={3} fill={n.color || '#94a3b8'} />
+                        {labelType && labelType !== 'none' && (
+                            <text 
+                                x={mapX(n.x)} y={mapY(n.y) - 5} 
+                                textAnchor="middle" 
+                                fill="var(--text)" 
+                                fontSize="8px" 
+                                opacity="0.7"
+                            >
+                                {labelType === 'id' ? n.contentId : (library[n.contentId]?.title || n.contentId)}
+                            </text>
+                        )}
+                    </g>
+                ))}
                 <rect x={mapX(viewX)} y={mapY(viewY)} width={viewportW * scale} height={viewportH * scale} className="minimap-viewport" style={{ stroke: 'var(--text)', strokeOpacity: 0.5, fill: 'none' }} />
             </svg>
             <div className="minimap-resize-handle" onMouseDown={handleMouseDown} title="Drag to resize" />
@@ -64,10 +79,37 @@ const ContextMenu = ({ x, y, item, onClose, onAction, hoverClass }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [onClose]);
 
-    if (!item) return null;
+    // Smart positioning
+    const style = { position: 'fixed', zIndex: 9999 };
+    if (typeof window !== 'undefined') {
+        const estimatedWidth = 200;
+        const estimatedHeight = 250;
+        
+        if (x + estimatedWidth > window.innerWidth) {
+            style.left = 'auto';
+            style.right = window.innerWidth - x;
+        } else {
+            style.left = x;
+            style.right = 'auto';
+        }
+
+        if (y + estimatedHeight > window.innerHeight) {
+            style.top = 'auto';
+            style.bottom = window.innerHeight - y;
+        } else {
+            style.top = y;
+            style.bottom = 'auto';
+        }
+    } else {
+        style.top = y;
+        style.left = x;
+    }
+
+    // if (!item) return null; // REMOVED: Allow menu without item (for panel context)
     return (
-        <div ref={menuRef} className="context-menu shadow-xl bg-[var(--panel-bg)] text-[var(--text)] border border-[var(--border)]" style={{ top: y, left: x }} onClick={(e) => e.stopPropagation()}>
-            {item.activeNode ? (
+        <div ref={menuRef} className="context-menu shadow-xl bg-[var(--panel-bg)] text-[var(--text)] border border-[var(--border)]" style={style} onClick={(e) => e.stopPropagation()}>
+            {item ? (
+                item.activeNode ? (
                 <>
                     {['focus', 'edit', 'pin', 'hide'].map(act => (
                         <div key={act} className={`context-menu-item ${hoverClass}`} onClick={() => { onAction(act, item.activeNode); onClose(); }}>
@@ -80,6 +122,9 @@ const ContextMenu = ({ x, y, item, onClose, onAction, hoverClass }) => {
                 </>
             ) : (
                 <div className={`context-menu-item ${hoverClass}`} onClick={() => { onAction('show', item.cId); onClose(); }}><i className="ri-eye-line"></i> Show Node</div>
+            )
+            ) : (
+                <div className={`context-menu-item ${hoverClass}`} onClick={() => { onAction('auto_arrange'); onClose(); }}><i className="ri-layout-grid-line"></i> Auto Arrange</div>
             )}
         </div>
     );
@@ -121,7 +166,7 @@ const GraphSidebar = ({ items, links, nodes, rowHeight = 32 }) => {
     );
 };
 
-const UIOverlay = ({ nodes, library, transform, settings, setSettings, onAddNode, onExport, onImport, onTogglePin, onEditNode, onDeleteNode, onToggleVisibility, onFocusNode, I18N }) => {
+const UIOverlay = ({ nodes, library, transform, settings, setSettings, onAddNode, onExport, onImport, onTogglePin, onEditNode, onDeleteNode, onToggleVisibility, onFocusNode, onAutoArrange, I18N, nodeOrder, setNodeOrder }) => {
     const [navOpen, setNavOpen] = useState(false);
     const [ctrlOpen, setCtrlOpen] = useState(false);
     const [physicsOpen, setPhysicsOpen] = useState(false);
@@ -129,7 +174,6 @@ const UIOverlay = ({ nodes, library, transform, settings, setSettings, onAddNode
     const [contextMenu, setContextMenu] = useState(null); 
     const [showNewNodeMenu, setShowNewNodeMenu] = useState(false);
     const newNodeMenuRef = useRef(null);
-    const [sortedIds, setSortedIds] = useState([]);
     const t = I18N[settings.lang];
 
     const isDarkTheme = ['blackboard', 'blueprint'].includes(settings.theme);
@@ -137,12 +181,12 @@ const UIOverlay = ({ nodes, library, transform, settings, setSettings, onAddNode
 
     useEffect(() => {
         const currentIds = Object.keys(library);
-        setSortedIds(prev => {
+        setNodeOrder(prev => {
             const next = prev.filter(id => library[id]);
             currentIds.forEach(id => { if (!next.includes(id)) next.push(id); });
             return next;
         });
-    }, [library]);
+    }, [library, setNodeOrder]);
 
     const virtualLinks = useMemo(() => {
         const links = [];
@@ -155,27 +199,35 @@ const UIOverlay = ({ nodes, library, transform, settings, setSettings, onAddNode
     }, [library]);
 
     const explorerItems = useMemo(() => {
-        const allContent = sortedIds.map(cId => {
+        const allContent = nodeOrder.map(cId => {
             const content = library[cId];
             if (!content) return null;
             const activeNode = nodes.find(n => n.contentId === cId);
             return { cId, content, activeNode, isPinned: activeNode ? (activeNode.fx !== null && activeNode.fx !== undefined) : false };
         }).filter(Boolean);
-        if (!searchTerm) return allContent;
-        return allContent.filter(item => item.content.title.toLowerCase().includes(searchTerm.toLowerCase()) || item.cId.toLowerCase().includes(searchTerm.toLowerCase()));
-    }, [library, nodes, searchTerm, sortedIds]);
+        if (!searchTerm) return allContent.reverse();
+        return allContent.filter(item => item.content.title.toLowerCase().includes(searchTerm.toLowerCase()) || item.cId.toLowerCase().includes(searchTerm.toLowerCase())).reverse();
+    }, [library, nodes, searchTerm, nodeOrder]);
 
     const dragItem = useRef(null);
     const dragOverItem = useRef(null);
-    const handleDragStart = (e, index) => { dragItem.current = index; e.dataTransfer.effectAllowed = "move"; };
-    const handleDragEnter = (e, index) => { dragOverItem.current = index; };
+    const handleDragStart = (e, index) => { 
+        // Convert visual index (reversed) to real index in nodeOrder
+        const realIndex = nodeOrder.length - 1 - index;
+        dragItem.current = realIndex; 
+        e.dataTransfer.effectAllowed = "move"; 
+    };
+    const handleDragEnter = (e, index) => { 
+        const realIndex = nodeOrder.length - 1 - index;
+        dragOverItem.current = realIndex; 
+    };
     const handleDragEnd = () => {
         if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
-            const copy = [...sortedIds];
+            const copy = [...nodeOrder];
             const itemContent = copy[dragItem.current];
             copy.splice(dragItem.current, 1);
             copy.splice(dragOverItem.current, 0, itemContent);
-            setSortedIds(copy);
+            setNodeOrder(copy);
         }
         dragItem.current = null; dragOverItem.current = null;
     };
@@ -186,7 +238,8 @@ const UIOverlay = ({ nodes, library, transform, settings, setSettings, onAddNode
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleContextMenu = (e, item) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, item }); };
+    const handleContextMenu = (e, item) => { e.preventDefault(); e.stopPropagation(); setContextMenu({ x: e.clientX, y: e.clientY, item }); };
+    const handlePanelContextMenu = (e) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, item: null }); };
     const handleMenuAction = (action, target) => {
         if (action === 'focus') onFocusNode(target);
         if (action === 'edit') onEditNode(target.id);
@@ -194,13 +247,14 @@ const UIOverlay = ({ nodes, library, transform, settings, setSettings, onAddNode
         if (action === 'delete') onDeleteNode(target.id);
         if (action === 'hide') onToggleVisibility(target.contentId);
         if (action === 'show') onToggleVisibility(target);
+        if (action === 'auto_arrange') onAutoArrange && onAutoArrange(); 
     };
     const handleAddWithType = (type) => { onAddNode(type); setShowNewNodeMenu(false); };
 
     return (
         <>
             {contextMenu && <ContextMenu {...contextMenu} onClose={() => setContextMenu(null)} onAction={handleMenuAction} hoverClass={hoverClass} />}
-            <Minimap nodes={nodes} links={settings.linksRef || []} transform={transform} visible={settings.showMinimap} />
+            <Minimap nodes={nodes} links={settings.linksRef || []} transform={transform} visible={settings.showMinimap} labelType={settings.minimapLabelType} library={library} />
 
             {/* Nav Panel (Explorer) */}
             <div className={`ui-panel nav-panel ${navOpen ? 'w-64 h-[80vh] open' : 'w-10 h-10'} bg-[var(--panel-bg)] border-r border-[var(--border)] text-[var(--text)]`}>
@@ -234,7 +288,7 @@ const UIOverlay = ({ nodes, library, transform, settings, setSettings, onAddNode
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto relative">
+                    <div className="flex-1 overflow-y-auto relative" onContextMenu={handlePanelContextMenu}>
                         <GraphSidebar items={explorerItems} links={virtualLinks} nodes={nodes} rowHeight={32} />
                         <div className="relative z-10 pb-24">
                             {explorerItems.map((item, index) => (
@@ -282,8 +336,46 @@ const UIOverlay = ({ nodes, library, transform, settings, setSettings, onAddNode
 
                     <div className="space-y-2">
                         <div className="flex items-center justify-between"><label htmlFor="tooltip-check" className="text-xs font-bold cursor-pointer select-none">{t.showTooltips}</label><input type="checkbox" id="tooltip-check" className="toggle-switch" checked={settings.showTooltips} onChange={e => setSettings({...settings, showTooltips: e.target.checked})} /></div>
+                        <div className="flex items-center justify-between"><label htmlFor="edgelabel-check" className="text-xs font-bold cursor-pointer select-none">{t.showEdgeLabels}</label><input type="checkbox" id="edgelabel-check" className="toggle-switch" checked={settings.showEdgeLabels} onChange={e => setSettings({...settings, showEdgeLabels: e.target.checked})} /></div>
+                        
+                        {settings.showEdgeLabels && (
+                            <div className="pl-2 space-y-2 border-l-2 border-[var(--border)] ml-1">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-bold opacity-70 uppercase">{t.edgeLabelMode || "Position"}</label>
+                                    <div className="flex bg-[var(--input-bg)] rounded border border-[var(--border)] p-0.5">
+                                        <button className={`px-2 py-0.5 text-[10px] rounded ${settings.edgeLabelMode === 'center' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]'}`} onClick={() => setSettings({...settings, edgeLabelMode: 'center'})}>Center</button>
+                                        <button className={`px-2 py-0.5 text-[10px] rounded ${settings.edgeLabelMode === 'side' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]'}`} onClick={() => setSettings({...settings, edgeLabelMode: 'side'})}>Side</button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-bold opacity-70 uppercase">{t.edgeLabelBg || "Background"}</label>
+                                    <div className="flex bg-[var(--input-bg)] rounded border border-[var(--border)] p-0.5">
+                                        <button className={`px-2 py-0.5 text-[10px] rounded ${settings.edgeLabelBg === 'box' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]'}`} onClick={() => setSettings({...settings, edgeLabelBg: 'box'})}>Box</button>
+                                        <button className={`px-2 py-0.5 text-[10px] rounded ${settings.edgeLabelBg === 'none' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]'}`} onClick={() => setSettings({...settings, edgeLabelBg: 'none'})}>None</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* UPDATED: 使用 t.showMinimap */}
                         <div className="flex items-center justify-between"><label htmlFor="minimap-check" className="text-xs font-bold cursor-pointer select-none">{t.showMinimap}</label><input type="checkbox" id="minimap-check" className="toggle-switch" checked={settings.showMinimap} onChange={e => setSettings({...settings, showMinimap: e.target.checked})} /></div>
+                        
+                        {settings.showMinimap && (
+                            <div className="pl-2 space-y-2 border-l-2 border-[var(--border)] ml-1">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-bold opacity-70 uppercase">{t.minimapLabel || "Label"}</label>
+                                    <select 
+                                        className="bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)] text-[10px] rounded px-1 py-0.5 outline-none"
+                                        value={settings.minimapLabelType || 'none'}
+                                        onChange={e => setSettings({...settings, minimapLabelType: e.target.value})}
+                                    >
+                                        <option value="none">{t.none || "None"}</option>
+                                        <option value="id">{t.id || "ID"}</option>
+                                        <option value="title">{t.title || "Title"}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     
                     <div className="pt-4 flex gap-2 border-t border-[var(--border)]">

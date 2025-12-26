@@ -1,0 +1,190 @@
+{
+  "metadata": {
+    "name": "solid_state_physics_example",
+    "description": "Solid State Physics example: From Hamiltonian to Quantum Harmonic Oscillator solution in a Crystal Lattice.",
+    "generatedAt": "2025-12-26T04:40:00.000Z"
+  },
+  "library": {
+    "hamiltonian": {
+      "title": "Hamiltonian Operator",
+      "type": "axiom",
+      "template": "H = {{0}} + {{1}}",
+      "note": "Total energy operator: Kinetic + Potential energy.",
+      "segments": {
+        "0": {
+          "text": "\\frac{1}{2}m\\dot{\\mu}^2",
+          "type": "link",
+          "target": "kinetic_term",
+          "color": "#ef4444",
+          "tooltip": {
+            "title": "Kinetic Energy",
+            "content": "Classical form: 1/2 mv^2. Quantum form involves Laplacian.",
+            "contentType": "markdown"
+          }
+        },
+        "1": {
+          "text": "\\frac{1}{2}\\partial^2 V",
+          "type": "link",
+          "target": "potential_term",
+          "color": "#3b82f6",
+          "tooltip": {
+            "title": "Potential Energy",
+            "content": "Harmonic approximation of the crystal potential.",
+            "contentType": "markdown"
+          }
+        }
+      }
+    },
+    "kinetic_term": {
+      "title": "Kinetic Energy (Quantum)",
+      "type": "constant",
+      "template": "T = -\\frac{\\hbar^2}{2m}\\nabla^2",
+      "note": "Momentum operator squared divided by 2m.",
+      "segments": {}
+    },
+    "potential_term": {
+      "title": "Harmonic Potential",
+      "type": "parameter",
+      "template": "V(x) \\approx \\frac{1}{2}k x^2",
+      "note": "Taylor expansion around equilibrium position in the lattice.",
+      "segments": {
+        "0": {
+          "text": "k",
+          "type": "link",
+          "target": "crystal_structure",
+          "color": "#10b981",
+          "tooltip": {
+            "title": "Spring Constant",
+            "content": "Determined by the curvature of the potential in the crystal lattice.",
+            "contentType": "markdown"
+          }
+        }
+      }
+    },
+    "schrodinger_eq": {
+      "title": "Schrödinger Equation",
+      "type": "axiom",
+      "template": "H\\Psi = E\\Psi",
+      "note": "Time-independent Schrödinger equation for stationary states.",
+      "segments": {
+        "0": {
+          "text": "\\Psi",
+          "type": "link",
+          "target": "wavefunction",
+          "color": "#8b5cf6"
+        }
+      }
+    },
+    "wavefunction": {
+      "title": "Wavefunction Solution",
+      "type": "default",
+      "template": "\\Psi_n(Q) = N_n {{0}} \\cdot {{1}}",
+      "note": "Eigenstates of the Quantum Harmonic Oscillator.",
+      "segments": {
+        "0": {
+          "text": "H_n(\\sqrt{\\alpha}Q)",
+          "type": "link",
+          "target": "hermite_poly",
+          "color": "#f59e0b"
+        },
+        "1": {
+          "text": "e^{-\\alpha Q^2/2}",
+          "type": "link",
+          "target": "gaussian_term",
+          "color": "#ec4899"
+        }
+      }
+    },
+    "hermite_poly": {
+      "title": "Hermite Polynomials",
+      "type": "constant",
+      "template": "H_n(y) = (-1)^n e^{y^2} \\frac{d^n}{dy^n}e^{-y^2}",
+      "note": "Orthogonal polynomials that solve the differential equation.",
+      "segments": {}
+    },
+    "gaussian_term": {
+      "title": "Gaussian Envelope",
+      "type": "constant",
+      "template": "e^{-\\alpha Q^2/2}",
+      "note": "Ensures the wavefunction is normalizable (goes to 0 at infinity).",
+      "segments": {}
+    },
+    "crystal_structure": {
+      "title": "Crystal Lattice Structure",
+      "type": "note",
+      "template": "\\text{Lattice Model}",
+      "note": "3D representation of the crystal grid.",
+      "segments": {
+        "0": {
+          "text": "View Structure",
+          "type": "text",
+          "tooltip": {
+            "title": "Simple Cubic Lattice",
+            "content": "<svg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\"><defs><radialGradient id=\"atomGrad\" cx=\"30%\" cy=\"30%\" r=\"70%\"><stop offset=\"0%\" stop-color=\"#fff\" /><stop offset=\"100%\" stop-color=\"#3b82f6\" /></radialGradient></defs><g transform=\"translate(100,100)\"><!-- Back face --><path d=\"M-50,-50 L50,-50 L50,50 L-50,50 Z\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"1\" opacity=\"0.5\"/><!-- Connecting lines --><line x1=\"-50\" y1=\"-50\" x2=\"-30\" y2=\"-30\" stroke=\"#94a3b8\" stroke-width=\"1\"/><line x1=\"50\" y1=\"-50\" x2=\"70\" y2=\"-30\" stroke=\"#94a3b8\" stroke-width=\"1\"/><line x1=\"50\" y1=\"50\" x2=\"70\" y2=\"70\" stroke=\"#94a3b8\" stroke-width=\"1\"/><line x1=\"-50\" y1=\"50\" x2=\"-30\" y2=\"70\" stroke=\"#94a3b8\" stroke-width=\"1\"/><!-- Front face --><path d=\"M-30,-30 L70,-30 L70,70 L-30,70 Z\" fill=\"none\" stroke=\"#64748b\" stroke-width=\"2\"/><!-- Atoms --><circle cx=\"-50\" cy=\"-50\" r=\"8\" fill=\"url(#atomGrad)\" opacity=\"0.6\"/><circle cx=\"50\" cy=\"-50\" r=\"8\" fill=\"url(#atomGrad)\" opacity=\"0.6\"/><circle cx=\"50\" cy=\"50\" r=\"8\" fill=\"url(#atomGrad)\" opacity=\"0.6\"/><circle cx=\"-50\" cy=\"50\" r=\"8\" fill=\"url(#atomGrad)\" opacity=\"0.6\"/><circle cx=\"-30\" cy=\"-30\" r=\"10\" fill=\"url(#atomGrad)\"/><circle cx=\"70\" cy=\"-30\" r=\"10\" fill=\"url(#atomGrad)\"/><circle cx=\"70\" cy=\"70\" r=\"10\" fill=\"url(#atomGrad)\"/><circle cx=\"-30\" cy=\"70\" r=\"10\" fill=\"url(#atomGrad)\"/></g></svg>",
+            "contentType": "svg"
+          }
+        }
+      }
+    },
+    "potential_plot": {
+      "title": "Potential Well",
+      "type": "note",
+      "template": "\\text{V(x) Plot}",
+      "note": "Harmonic potential well with energy levels.",
+      "segments": {
+        "0": {
+          "text": "View Plot",
+          "type": "text",
+          "tooltip": {
+            "title": "Harmonic Potential",
+            "content": "<svg viewBox=\"0 0 200 150\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M10,10 L10,140 L190,140\" stroke=\"#000\" fill=\"none\"/><path d=\"M20,10 Q100,140 180,10\" stroke=\"#3b82f6\" stroke-width=\"2\" fill=\"none\"/><line x1=\"40\" y1=\"110\" x2=\"160\" y2=\"110\" stroke=\"#ef4444\" stroke-width=\"1\" stroke-dasharray=\"4\"/><line x1=\"30\" y1=\"80\" x2=\"170\" y2=\"80\" stroke=\"#ef4444\" stroke-width=\"1\" stroke-dasharray=\"4\"/><line x1=\"20\" y1=\"50\" x2=\"180\" y2=\"50\" stroke=\"#ef4444\" stroke-width=\"1\" stroke-dasharray=\"4\"/><text x=\"170\" y=\"105\" font-size=\"10\" fill=\"#ef4444\">E0</text><text x=\"180\" y=\"75\" font-size=\"10\" fill=\"#ef4444\">E1</text></svg>",
+            "contentType": "svg"
+          }
+        }
+      }
+    },
+    "psi_plot": {
+      "title": "Wavefunction Plot",
+      "type": "note",
+      "template": "\\text{Plot } \\Psi_2",
+      "note": "Visualizing the second excited state.",
+      "segments": {
+        "0": {
+          "text": "View Psi",
+          "type": "text",
+          "tooltip": {
+            "title": "Psi_2 (n=2)",
+            "content": "<svg viewBox=\"0 0 200 100\" xmlns=\"http://www.w3.org/2000/svg\"><line x1=\"0\" y1=\"50\" x2=\"200\" y2=\"50\" stroke=\"#ccc\"/><path d=\"M10,50 C30,50 40,20 60,50 S80,80 100,50 S120,20 140,50 S170,50 190,50\" stroke=\"#8b5cf6\" stroke-width=\"2\" fill=\"none\"/></svg>",
+            "contentType": "svg"
+          }
+        }
+      }
+    }
+  },
+  "scene": {
+    "nodes": [
+      { "id": "n_hamiltonian", "contentId": "hamiltonian", "x": 400, "y": 100, "color": "#1e293b" },
+      { "id": "n_kinetic", "contentId": "kinetic_term", "x": 200, "y": 250, "color": "#ef4444" },
+      { "id": "n_potential", "contentId": "potential_term", "x": 600, "y": 250, "color": "#3b82f6" },
+      { "id": "n_crystal", "contentId": "crystal_structure", "x": 800, "y": 250, "color": "#10b981" },
+      { "id": "n_schrodinger", "contentId": "schrodinger_eq", "x": 400, "y": 400, "color": "#8b5cf6" },
+      { "id": "n_wavefunction", "contentId": "wavefunction", "x": 400, "y": 550, "color": "#d946ef" },
+      { "id": "n_hermite", "contentId": "hermite_poly", "x": 200, "y": 700, "color": "#f59e0b" },
+      { "id": "n_gaussian", "contentId": "gaussian_term", "x": 600, "y": 700, "color": "#ec4899" },
+      { "id": "n_pot_plot", "contentId": "potential_plot", "x": 600, "y": 350, "color": "#3b82f6" },
+      { "id": "n_psi_plot", "contentId": "psi_plot", "x": 600, "y": 550, "color": "#8b5cf6" }
+    ],
+    "links": [
+      { "source": "n_hamiltonian", "target": "n_kinetic" },
+      { "source": "n_hamiltonian", "target": "n_potential" },
+      { "source": "n_potential", "target": "n_crystal" },
+      { "source": "n_potential", "target": "n_pot_plot" },
+      { "source": "n_hamiltonian", "target": "n_schrodinger" },
+      { "source": "n_schrodinger", "target": "n_wavefunction" },
+      { "source": "n_wavefunction", "target": "n_hermite" },
+      { "source": "n_wavefunction", "target": "n_gaussian" },
+      { "source": "n_wavefunction", "target": "n_psi_plot" }
+    ],
+    "expandedState": {}
+  }
+}

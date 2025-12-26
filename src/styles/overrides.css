@@ -1,0 +1,13 @@
+/* ==========================================================================
+   KaTeX Overrides
+   ========================================================================== */
+/* Fix KaTeX fraction bars and containers blocking clicks */
+/* User Override: vlist instead of vlist-t */
+.katex .vlist { pointer-events: none; } 
+.katex .vlist > * { pointer-events: auto; } 
+
+.katex-display { margin: 0.2em 0; pointer-events: none; }
+.katex-display > .katex { pointer-events: auto; }
+
+.katex { pointer-events: none; } 
+.katex .base { pointer-events: auto; }

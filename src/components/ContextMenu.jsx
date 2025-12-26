@@ -26,6 +26,7 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
         en: {
             new: "New Node",
             refresh: "Refresh View",
+            expandAll: "Expand All",
             collapse: "Collapse All",
             paste: "Paste Node",
             copy: "Copy",
@@ -38,6 +39,7 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
         zh: {
             new: "新建节点",
             refresh: "刷新视图",
+            expandAll: "展开全部",
             collapse: "折叠全部",
             paste: "粘贴节点",
             copy: "复制",
@@ -53,14 +55,35 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
 
     // Adjust position to not overflow screen
     const style = {
-        top: y,
-        left: x,
+        position: 'fixed', // Ensure fixed positioning relative to viewport
+        zIndex: 9999 // Ensure it's on top
     };
     
-    // Basic boundary detection
+    // Smart boundary detection
     if (typeof window !== 'undefined') {
-        if (window.innerHeight - y < 280) style.top = y - 280; // Shift up if close to bottom
-        if (window.innerWidth - x < 180) style.left = x - 180; // Shift left if close to right
+        const estimatedWidth = 200;
+        const estimatedHeight = 300;
+        
+        // Horizontal: if close to right edge, align right to x
+        if (x + estimatedWidth > window.innerWidth) {
+            style.left = 'auto';
+            style.right = window.innerWidth - x;
+        } else {
+            style.left = x;
+            style.right = 'auto';
+        }
+
+        // Vertical: if close to bottom edge, align bottom to y
+        if (y + estimatedHeight > window.innerHeight) {
+            style.top = 'auto';
+            style.bottom = window.innerHeight - y;
+        } else {
+            style.top = y;
+            style.bottom = 'auto';
+        }
+    } else {
+        style.top = y;
+        style.left = x;
     }
 
     return (
@@ -82,6 +105,9 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
                         <span className="opacity-50 text-xs">R</span>
                     </div>
                     <div className="context-divider"></div>
+                    <div className="context-menu-item" onClick={() => onAction('expand_all')}>
+                        <span>{labels.expandAll || "Expand All"}</span>
+                    </div>
                     <div className="context-menu-item" onClick={() => onAction('collapse')}>
                         <span>{labels.collapse}</span>
                     </div>
