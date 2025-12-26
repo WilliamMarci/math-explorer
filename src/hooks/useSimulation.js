@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-export const useSimulation = (graphData, svgRef, settings, library, setNodes, setLinks, setTransform, handleCanvasContextMenu, isSpacePressed) => {
+export const useSimulation = (graphData, svgRef, settings, library, setNodes, setLinks, setTransform, handleCanvasContextMenu, isSpacePressed, viewModeRef) => {
     const simulationRef = useRef(null);
     const zoomBehavior = useRef(null);
 
@@ -40,9 +40,9 @@ export const useSimulation = (graphData, svgRef, settings, library, setNodes, se
                 // Allow Middle (1) or Right (2) button drag
                 if (event.button === 1 || event.button === 2) return true;
                 
-                // Allow Left (0) button drag ONLY if Space key is pressed
+                // Allow Left (0) button drag ONLY if Space key is pressed OR viewMode is enabled
                 if (event.button === 0) {
-                    return isSpacePressed && isSpacePressed.current;
+                    return (isSpacePressed && isSpacePressed.current) || (viewModeRef && viewModeRef.current);
                 }
                 
                 return false;

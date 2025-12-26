@@ -15,6 +15,8 @@ export const I18N = {
         showEdgeLabels: "Show Edge Labels", edgeLabelMode: "Label Position", edgeLabelBg: "Label Background",
         minimapLabel: "Minimap Label", id: "ID", title: "Title", none: "None",
         expandAll: "Expand All", autoArrange: "Auto Arrange",
+        focus: "Focus", pin: "Pin", unpin: "Unpin", hide: "Hide", show: "Show", edit: "Edit",
+        shortcuts: { new: "New Node", refresh: "Refresh View", copy: "Copy", paste: "Paste", cut: "Cut", delete: "Delete", toggleViewMode: "Toggle View Mode" },
         types: { default: "Default", axiom: "Axiom", constant: "Constant", parameter: "Parameter", note: "Note" }
     },
     zh: {
@@ -31,6 +33,8 @@ export const I18N = {
         showEdgeLabels: "显示连线标签", edgeLabelMode: "标签位置", edgeLabelBg: "标签背景",
         minimapLabel: "小地图标签", id: "ID", title: "标题", none: "无",
         expandAll: "展开全部", autoArrange: "自动排列",
+        focus: "聚焦", pin: "固定", unpin: "取消固定", hide: "隐藏", show: "显示", edit: "编辑",
+        shortcuts: { new: "新建节点", refresh: "刷新视图", copy: "复制", paste: "粘贴", cut: "剪切", delete: "删除", toggleViewMode: "切换视图模式" },
         types: { default: "默认", axiom: "公理", constant: "常数", parameter: "参数", note: "注释" }
     },
     fr: {
@@ -47,6 +51,8 @@ export const I18N = {
         showEdgeLabels: "Afficher les étiquettes de connexion", edgeLabelMode: "Position de l'étiquette", edgeLabelBg: "Fond de l'étiquette",
         minimapLabel: "Étiquette de la mini-carte", id: "ID", title: "Titre", none: "Aucun",
         expandAll: "Tout développer", autoArrange: "Arrangement automatique",
+        focus: "Focus", pin: "Épingler", unpin: "Désépingler", hide: "Masquer", show: "Afficher", edit: "Éditer",
+        shortcuts: { new: "Nouveau Nœud", refresh: "Actualiser", copy: "Copier", paste: "Coller", cut: "Couper", delete: "Supprimer", toggleViewMode: "Mode Vue" },
         types: { default: "Défaut", axiom: "Axiome", constant: "Constante", parameter: "Paramètre", note: "Note" }
     },
     jp: {
@@ -63,6 +69,8 @@ export const I18N = {
         showEdgeLabels: "エッジラベルを表示", edgeLabelMode: "ラベル位置", edgeLabelBg: "ラベル背景",
         minimapLabel: "ミニマップラベル", id: "ID", title: "タイトル", none: "なし",
         expandAll: "すべて展開", autoArrange: "自動配置",
+        focus: "フォーカス", pin: "ピン留め", unpin: "ピン留め解除", hide: "隠す", show: "表示", edit: "編集",
+        shortcuts: { new: "新しいノード", refresh: "更新", copy: "コピー", paste: "貼り付け", cut: "切り取り", delete: "削除", toggleViewMode: "表示モード切替" },
         types: { default: "デフォルト", axiom: "公理", constant: "定数", parameter: "パラメータ", note: "ノート" }
     },
 };

@@ -41,9 +41,23 @@ const App = () => {
     const [nodeOrder, setNodeOrder] = useState([]);
     const [selectedNodeIds, setSelectedNodeIds] = useState([]);
     const isSpacePressed = useRef(false);
+    
+    const [viewMode, setViewMode] = useState(false);
+    const viewModeRef = useRef(false);
+    useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
+
+    const [shortcuts, setShortcuts] = useState({
+        'new': 'n',
+        'refresh': 'r',
+        'copy': 'c',
+        'paste': 'v',
+        'cut': 'x',
+        'delete': 'delete',
+        'toggleViewMode': 'e'
+    });
 
     const [settings, setSettings] = useState({ 
-        theme: 'classic', gravity: 400, centering: 10, distance: 350, 
+        theme: 'auto', gravity: 400, centering: 10, distance: 350, 
         showTooltips: true, showMinimap: true, lang: 'en',
         showEdgeLabels: true, edgeLabelMode: 'side', edgeLabelBg: 'none'
     });
@@ -61,7 +75,7 @@ const App = () => {
         setContextMenu({ visible: true, x: e.clientX, y: e.clientY, type: 'canvas', targetId: null });
     };
 
-    const { simulationRef, zoomBehavior } = useSimulation(graphData, svgRef, settings, library, setNodes, setLinks, setTransform, handleCanvasContextMenu, isSpacePressed);
+    const { simulationRef, zoomBehavior } = useSimulation(graphData, svgRef, settings, library, setNodes, setLinks, setTransform, handleCanvasContextMenu, isSpacePressed, viewModeRef);
 
     // --- Helpers ---
     const updateSimulation = useCallback(() => {
@@ -81,7 +95,8 @@ const App = () => {
         setNodes,
         updateSimulation,
         setEditingNodeId,
-        library
+        library,
+        setNodeOrder
     });
 
     const { addNode, deleteNode, toggleVisibility, handleToggle, handleSaveNode } = actions;
@@ -109,16 +124,31 @@ const App = () => {
     // 0. Global Keyboard Handlers (Shortcuts & Space Key)
     useEffect(() => {
         const handleKeyDown = (e) => {
+            if (editingNodeId) return; // Don't trigger shortcuts when editing
+
             if (e.code === 'Space') {
                 isSpacePressed.current = true;
                 // Optional: Change cursor style
                 if (svgRef.current) svgRef.current.style.cursor = 'grab';
             }
 
+            const key = e.key.toLowerCase();
+
+            // Single key shortcuts
+            if (key === shortcuts.new.toLowerCase()) {
+                addNode(transform);
+            }
+            if (key === shortcuts.refresh.toLowerCase()) {
+                updateSimulation();
+            }
+            if (key === (shortcuts.toggleViewMode || 'e').toLowerCase()) {
+                setViewMode(prev => !prev);
+            }
+
             // Shortcuts
             if (e.ctrlKey || e.metaKey) {
-                switch(e.key.toLowerCase()) {
-                    case 'c':
+                switch(key) {
+                    case shortcuts.copy.toLowerCase():
                         // Copy
                         if (selectedNodeIds.length > 0) {
                             // Copy logic for multiple? Or just focused?
@@ -127,11 +157,11 @@ const App = () => {
                             if (targetId) handleContextAction('copy', targetId);
                         }
                         break;
-                    case 'v':
+                    case shortcuts.paste.toLowerCase():
                         // Paste
                         handleContextAction('paste');
                         break;
-                    case 'x':
+                    case shortcuts.cut.toLowerCase():
                         // Cut
                         if (selectedNodeIds.length > 0) {
                              // Handle multiple cut?
@@ -176,10 +206,25 @@ const App = () => {
     
     // 1. Theme Application
     useEffect(() => {
-        const root = document.querySelector('.app-container');
-        if (root) { 
-            const themeVars = THEME_PRESETS[settings.theme]; 
-            Object.entries(themeVars).forEach(([key, val]) => root.style.setProperty(key, val)); 
+        const root = document.body;
+        if (!root) return;
+
+        const applyTheme = (themeName) => {
+            let targetTheme = themeName;
+            if (themeName === 'auto') {
+                targetTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'blackboard' : 'classic';
+            }
+            const themeVars = THEME_PRESETS[targetTheme] || THEME_PRESETS['classic'];
+            Object.entries(themeVars).forEach(([key, val]) => root.style.setProperty(key, val));
+        };
+
+        applyTheme(settings.theme);
+
+        if (settings.theme === 'auto') {
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const handleChange = () => applyTheme('auto');
+            mediaQuery.addEventListener('change', handleChange);
+            return () => mediaQuery.removeEventListener('change', handleChange);
         }
     }, [settings.theme]);
 
@@ -204,18 +249,45 @@ const App = () => {
         e.stopPropagation();
         setFocusedNodeId(node.id);
         simulationRef.current.alphaTarget(0.3).restart(); 
-        node.fx = node.x; node.fy = node.y;
+        
+        // Store initial pin state
+        const wasPinned = node.fx !== null && node.fx !== undefined;
+        
+        // Set initial fixed position to current position (to start drag)
+        node.fx = node.x; 
+        node.fy = node.y;
+        
+        const isCtrlPressed = e.ctrlKey;
         
         const svg = svgRef.current;
+        const rect = svg.getBoundingClientRect();
+        
+        // Calculate offset from node center to mouse click
+        const mouseX = ((e.clientX - rect.left) - transform.x) / transform.k;
+        const mouseY = ((e.clientY - rect.top) - transform.y) / transform.k;
+        const offsetX = node.x - mouseX;
+        const offsetY = node.y - mouseY;
+
         const move = (ev) => { 
-            const rect = svg.getBoundingClientRect(); 
-            node.fx = ((ev.clientX - rect.left) - transform.x) / transform.k; 
-            node.fy = ((ev.clientY - rect.top) - transform.y) / transform.k; 
+            const curX = ((ev.clientX - rect.left) - transform.x) / transform.k;
+            const curY = ((ev.clientY - rect.top) - transform.y) / transform.k;
+            node.fx = curX + offsetX; 
+            node.fy = curY + offsetY; 
         };
+        
         const up = () => { 
             simulationRef.current.alphaTarget(0); 
             window.removeEventListener('mousemove', move); 
             window.removeEventListener('mouseup', up); 
+            
+            // If Ctrl was pressed, keep it pinned.
+            // If Ctrl was NOT pressed, restore original pin state.
+            // If it was NOT pinned originally, unpin it (set fx/fy to null).
+            // If it WAS pinned originally, keep it pinned (fx/fy remain set to new pos).
+            if (!isCtrlPressed && !wasPinned) {
+                node.fx = null;
+                node.fy = null;
+            }
         };
         window.addEventListener('mousemove', move); 
         window.addEventListener('mouseup', up);
@@ -288,12 +360,14 @@ const App = () => {
             <UIOverlay 
                 nodes={nodes} library={library} transform={transform} svgRef={svgRef}
                 settings={{...settings, linksRef: links}} setSettings={setSettings}
-                onAddNode={() => addNode(transform)} onExport={handleExportClick} onImport={handleImport}
+                onAddNode={(type) => addNode(transform, type)} onExport={handleExportClick} onImport={handleImport}
                 onTogglePin={handlePinNode} onEditNode={setEditingNodeId} onDeleteNode={deleteNode}
                 onToggleVisibility={(id) => toggleVisibility(id, transform)} onFocusNode={handleFocusNode} 
                 onAutoArrange={() => simulationRef.current.alpha(1).restart()}
                 I18N={I18N}
                 nodeOrder={nodeOrder} setNodeOrder={setNodeOrder}
+                viewMode={viewMode} setViewMode={setViewMode}
+                shortcuts={shortcuts} setShortcuts={setShortcuts}
             />
             
             <ExportModal 
@@ -355,6 +429,7 @@ const App = () => {
                 settings={settings}
                 nodeOrder={nodeOrder}
                 isSpacePressed={isSpacePressed}
+                viewMode={viewMode}
             />
         </div>
     );

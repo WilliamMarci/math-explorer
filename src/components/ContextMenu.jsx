@@ -33,8 +33,7 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
             cut: "Cut",
             edit: "Edit Content",
             hide: "Hide Branch",
-            delete: "Delete",
-            connectPaste: "Paste & Connect"
+            delete: "Delete"
         },
         zh: {
             new: "新建节点",
@@ -46,8 +45,7 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
             cut: "剪切",
             edit: "编辑内容",
             hide: "隐藏分支",
-            delete: "删除",
-            connectPaste: "粘贴并连接"
+            delete: "删除"
         }
     };
 
@@ -129,12 +127,6 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
                     <div className="context-menu-item" onClick={() => onAction('cut')}>
                         <span>{labels.cut}</span>
                         <span className="opacity-50 text-xs">Ctrl+X</span>
-                    </div>
-                    <div 
-                        className={`context-menu-item ${!hasClipboard ? 'disabled' : ''}`} 
-                        onClick={() => hasClipboard && onAction('paste_connect')}
-                    >
-                        <span>{labels.connectPaste}</span>
                     </div>
                     <div className="context-divider"></div>
                     <div className="context-menu-item" onClick={() => onAction('edit')}>

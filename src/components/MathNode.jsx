@@ -17,7 +17,8 @@ const MathNode = ({
     onContextMenu, 
     lang, 
     I18N,
-    isSelected
+    isSelected,
+    viewMode
 }) => {
     const baseColor = node.color || COLORS[0];
     const isPinned = node.fx !== null && node.fx !== undefined;
@@ -38,6 +39,7 @@ const MathNode = ({
             }} 
             onMouseDown={(e) => onDragStart(e, node)}
             onContextMenu={(e) => onContextMenu(e, node)}
+            onDoubleClick={(e) => { e.stopPropagation(); if (!viewMode) onEdit(node.id); }}
         >
             <div className={`math-card ${isPinned ? 'pinned' : ''} node-type-${nodeType} ${isSelected ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}>
                 {/* Header */}
@@ -56,6 +58,7 @@ const MathNode = ({
                 </div>
 
                 {/* Actions */}
+                {!viewMode && (
                 <div className="node-actions">
                     <button 
                         className={`btn-icon ${isPinned ? 'bg-slate-800 text-white border-slate-800' : ''}`} 
@@ -72,6 +75,7 @@ const MathNode = ({
                         <i className="ri-edit-line"></i>
                     </button>
                 </div>
+                )}
 
                 {/* Body */}
                 <div className="node-body">

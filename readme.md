@@ -77,6 +77,21 @@ v = \frac{d {{pos}} }{d {{time}} }
 
 这种分离设计意味着你可以修改一个公理的内容，所有引用该公理的节点都会自动更新。
 
+---
+# for Developers
+
+## features
+
+### mathnode
+
+
 ## TODO
 
-- [ ] add minimal style, only show formula with a simple border, the title and note are hidden by default, only show when hover. and the node line connect formular interactive math elements with same key and next node border with a solid line.
+- [ ] muilt select nodes and drag to move, and give right click menu to align nodes (left, right, top, bottom, center), and also add muilt select options in the node panel (explorer, library)
+- [ ] add "minimal" style, only show formula with a simple border, the title and note are hidden by default, only show when hover. and the node line connect formular interactive math elements with same key and next node border with a solid line.
+- [ ] auto save and setting history version
+- [ ] add node libary management panel
+- [ ] add do/undo functionality
+- [ ] add pixel theme 
+- [ ] add export to png/svg/pdf
+- [ ] build as electron app

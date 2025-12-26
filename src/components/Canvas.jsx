@@ -22,7 +22,8 @@ const Canvas = ({
     nodeOrder,
     selectedNodeIds = [],
     onSelectionChange,
-    isSpacePressed
+    isSpacePressed,
+    viewMode
 }) => {
     // Selection State
     const [selectionBox, setSelectionBox] = React.useState(null);
@@ -51,8 +52,8 @@ const Canvas = ({
         // Only Left Click (0)
         if (e.button !== 0) return;
         
-        // If Space is pressed, let D3 handle it (it's a drag)
-        if (isSpacePressed && isSpacePressed.current) return;
+        // If Space is pressed OR viewMode is enabled, let D3 handle it (it's a drag)
+        if ((isSpacePressed && isSpacePressed.current) || viewMode) return;
 
         // Start Selection
         const rect = svgRef.current.getBoundingClientRect();
@@ -207,6 +208,7 @@ const Canvas = ({
                             lang={lang}
                             I18N={I18N}
                             isSelected={selectedNodeIds.includes(node.id)}
+                            viewMode={viewMode}
                         />
                     );
                 })}
@@ -229,6 +231,7 @@ const Canvas = ({
                             lang={lang}
                             I18N={I18N}
                             isSelected={selectedNodeIds.includes(node.id)}
+                            viewMode={viewMode}
                         />
                     );
                 })()}
@@ -251,6 +254,7 @@ const Canvas = ({
                             lang={lang}
                             I18N={I18N}
                             isSelected={selectedNodeIds.includes(node.id)}
+                            viewMode={viewMode}
                         />
                     );
                 })()}
