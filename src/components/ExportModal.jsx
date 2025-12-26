@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import Icon from './Icon';
 
-const ExportModal = ({ isOpen, onClose, onConfirm, defaultName = "scene", lang = 'en' }) => {
+const ExportModal = ({ isOpen, onClose, onConfirm, defaultName = "scene", lang = 'en', settings, icons }) => {
     const [fileName, setFileName] = useState(defaultName);
+    const [format, setFormat] = useState('json');
+    const isPixelMode = settings?.pixelMode;
 
     useEffect(() => {
-        if (isOpen) setFileName(defaultName);
+        if (isOpen) {
+            setFileName(defaultName);
+            setFormat('json');
+        }
     }, [isOpen, defaultName]);
 
     if (!isOpen) return null;
 
     const texts = {
-        en: { title: "Export Scene", label: "File Name", cancel: "Cancel", confirm: "Export", placeholder: "Enter filename..." },
-        zh: { title: "导出场景", label: "文件名", cancel: "取消", confirm: "导出", placeholder: "请输入文件名..." }
+        en: { title: "Export Scene", label: "File Name", format: "Format", cancel: "Cancel", confirm: "Export", placeholder: "Enter filename..." },
+        zh: { title: "导出场景", label: "文件名", format: "格式", cancel: "取消", confirm: "导出", placeholder: "请输入文件名..." }
     };
     const t = texts[lang] || texts.en;
 
     const handleConfirm = () => {
-        onConfirm(fileName);
+        onConfirm(fileName, format);
         onClose();
     };
 
@@ -25,7 +31,7 @@ const ExportModal = ({ isOpen, onClose, onConfirm, defaultName = "scene", lang =
             <div className="bg-white rounded-lg shadow-2xl w-96 p-6 border border-slate-200 transform transition-all scale-100">
                 <h3 className="text-lg font-bold mb-4 text-slate-800">{t.title}</h3>
                 
-                <div className="mb-6">
+                <div className="mb-4">
                     <label className="block text-sm font-medium text-slate-600 mb-2">
                         {t.label}
                     </label>
@@ -40,9 +46,24 @@ const ExportModal = ({ isOpen, onClose, onConfirm, defaultName = "scene", lang =
                             autoFocus
                         />
                         <span className="px-3 py-2 bg-slate-100 border border-l-0 border-slate-300 rounded-r-md text-slate-500 text-sm font-mono">
-                            .mathmap
+                            .{format === 'json' ? 'mathmap' : format}
                         </span>
                     </div>
+                </div>
+
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
+                        {t.format}
+                    </label>
+                    <select 
+                        value={format} 
+                        onChange={(e) => setFormat(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                    >
+                        <option value="json">MathMap (JSON)</option>
+                        <option value="png">Image (PNG)</option>
+                        <option value="svg">Vector (SVG)</option>
+                    </select>
                 </div>
 
                 <div className="flex justify-end gap-3">

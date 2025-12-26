@@ -23,11 +23,11 @@ const Canvas = ({
     selectedNodeIds = [],
     onSelectionChange,
     isSpacePressed,
-    viewMode
+    viewMode,
+    selectionBox,
+    onCanvasMouseDown,
+    icons
 }) => {
-    // Selection State
-    const [selectionBox, setSelectionBox] = React.useState(null);
-
     // Helper to find connection label
     const getLinkData = (source, target) => {
         if (!source || !target || !library[source.contentId]) return null;
@@ -47,75 +47,11 @@ const Canvas = ({
         });
     }, [nodes, nodeOrder]);
 
-    // Selection Handlers
-    const handleMouseDown = (e) => {
-        // Only Left Click (0)
-        if (e.button !== 0) return;
-        
-        // If Space is pressed OR viewMode is enabled, let D3 handle it (it's a drag)
-        if ((isSpacePressed && isSpacePressed.current) || viewMode) return;
-
-        // Start Selection
-        const rect = svgRef.current.getBoundingClientRect();
-        const startX = e.clientX - rect.left;
-        const startY = e.clientY - rect.top;
-        
-        setSelectionBox({ startX, startY, currentX: startX, currentY: startY });
-    };
-
-    const handleMouseMove = (e) => {
-        if (!selectionBox) return;
-        
-        const rect = svgRef.current.getBoundingClientRect();
-        const currentX = e.clientX - rect.left;
-        const currentY = e.clientY - rect.top;
-        
-        setSelectionBox(prev => ({ ...prev, currentX, currentY }));
-    };
-
-    const handleMouseUp = (e) => {
-        if (!selectionBox) return;
-        
-        // Calculate selection
-        const x1 = Math.min(selectionBox.startX, selectionBox.currentX);
-        const y1 = Math.min(selectionBox.startY, selectionBox.currentY);
-        const x2 = Math.max(selectionBox.startX, selectionBox.currentX);
-        const y2 = Math.max(selectionBox.startY, selectionBox.currentY);
-        
-        // Filter nodes
-        const selected = nodes.filter(node => {
-            // Node position in screen coords
-            const nx = node.x * transform.k + transform.x;
-            const ny = node.y * transform.k + transform.y;
-            // Check if center is inside
-            return nx >= x1 && nx <= x2 && ny >= y1 && ny <= y2;
-        }).map(n => n.id);
-        
-        if (onSelectionChange) {
-            onSelectionChange(selected);
-        }
-        
-        setSelectionBox(null);
-    };
-
-    // Attach global mouse up/move if selection started?
-    // Better to attach to window to handle drag outside canvas
-    React.useEffect(() => {
-        if (selectionBox) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-            return () => {
-                window.removeEventListener('mousemove', handleMouseMove);
-                window.removeEventListener('mouseup', handleMouseUp);
-            };
-        }
-    }, [selectionBox, nodes, transform]); // Dependencies for calculation
-
     return (
         <div 
             ref={svgRef} 
             className="w-full h-full cursor-move relative overflow-hidden"
-            onMouseDown={handleMouseDown}
+            onMouseDown={onCanvasMouseDown}
         >
             <div className="scene-layer" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})` }}>
                 <svg className="link-layer">
@@ -125,7 +61,8 @@ const Canvas = ({
                         if(!s || !t) return null; 
                         
                         const seg = getLinkData(s, t);
-                        const dashArray = seg?.connectionDash === 'dashed' ? '4,4' : seg?.connectionDash === 'dotted' ? '1,3' : undefined;
+                        const isMinimal = settings?.minimalMode;
+                        const dashArray = isMinimal ? undefined : (seg?.connectionDash === 'dashed' ? '4,4' : seg?.connectionDash === 'dotted' ? '1,3' : undefined);
                         const lineCap = seg?.connectionDash === 'dotted' ? 'round' : undefined;
                         
                         return (
@@ -209,6 +146,8 @@ const Canvas = ({
                             I18N={I18N}
                             isSelected={selectedNodeIds.includes(node.id)}
                             viewMode={viewMode}
+                            settings={settings}
+                            icons={icons}
                         />
                     );
                 })}
@@ -232,6 +171,8 @@ const Canvas = ({
                             I18N={I18N}
                             isSelected={selectedNodeIds.includes(node.id)}
                             viewMode={viewMode}
+                            settings={settings}
+                            icons={icons}
                         />
                     );
                 })()}
@@ -255,6 +196,8 @@ const Canvas = ({
                             I18N={I18N}
                             isSelected={selectedNodeIds.includes(node.id)}
                             viewMode={viewMode}
+                            settings={settings}
+                            icons={icons}
                         />
                     );
                 })()}

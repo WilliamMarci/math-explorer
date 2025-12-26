@@ -1,6 +1,7 @@
 import React from 'react';
 import { COLORS } from '../theme';
 import { InteractiveMath, RichViewer } from './Common';
+import Icon from './Icon';
 
 const getTypeName = (type, lang, I18N) => {
     return I18N[lang]?.types[type] || type;
@@ -18,14 +19,17 @@ const MathNode = ({
     lang, 
     I18N,
     isSelected,
-    viewMode
+    viewMode,
+    settings,
+    icons
 }) => {
     const baseColor = node.color || COLORS[0];
     const isPinned = node.fx !== null && node.fx !== undefined;
-    const nodeType = content?.type || 'default';
+    const nodeType = (content?.type || 'default').toLowerCase();
+    const isMinimal = settings?.minimalMode;
     
     const showBadge = nodeType !== 'default' && nodeType !== 'note';
-    const showMath = !(nodeType === 'note' && (!content?.template || content.template.trim() === ''));
+    const showMath = nodeType !== 'note' && content?.template && content.template.trim() !== '';
 
     if (!content) return null;
 
@@ -41,7 +45,7 @@ const MathNode = ({
             onContextMenu={(e) => onContextMenu(e, node)}
             onDoubleClick={(e) => { e.stopPropagation(); if (!viewMode) onEdit(node.id); }}
         >
-            <div className={`math-card ${isPinned ? 'pinned' : ''} node-type-${nodeType} ${isSelected ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}>
+            <div className={`math-card group ${isPinned ? 'pinned' : ''} ${isMinimal ? 'minimal-mode' : ''} node-type-${nodeType} ${isSelected ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}>
                 {/* Header */}
                 <div className="node-header">
                     {showBadge && (
@@ -65,14 +69,14 @@ const MathNode = ({
                         onClick={(e) => { e.stopPropagation(); onPin(node); }}
                         title="Pin Node"
                     >
-                        <i className={isPinned ? "ri-pushpin-fill" : "ri-pushpin-line"}></i>
+                        <Icon icon={isPinned ? icons?.unpin : icons?.pin} />
                     </button>
                     <button 
                         className="btn-icon" 
                         onClick={(e) => { e.stopPropagation(); onEdit(node.id); }}
                         title="Edit Content"
                     >
-                        <i className="ri-edit-line"></i>
+                        <Icon icon={icons?.edit} />
                     </button>
                 </div>
                 )}
@@ -93,7 +97,11 @@ const MathNode = ({
                             <RichViewer content={content.svg} type="svg" />
                         </div>
                     )}
-                    {content.note && <RichViewer content={content.note} type="markdown" />}
+                    {content.note && (
+                        <div className={(isMinimal && nodeType !== 'note') ? 'hidden group-hover:block node-note' : 'node-note'}>
+                            <RichViewer content={content.note} type="markdown" />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

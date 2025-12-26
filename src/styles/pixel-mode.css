@@ -1,0 +1,94 @@
+/* ==========================================================================
+   Pixel Mode Overrides
+   ========================================================================== */
+
+.pixel-mode {
+    --font-family: "DotGothic16", monospace, sans-serif;
+    --radius: 0px;
+    --shadow: 4px 4px 0px rgba(0,0,0,0.2);
+}
+
+/* Force square borders on everything in pixel mode */
+.pixel-mode * {
+    border-radius: 0 !important;
+}
+
+/* Fix toggle switch in pixel mode */
+.pixel-mode .toggle-switch {
+    border-radius: 0 !important;
+}
+.pixel-mode .toggle-switch::after {
+    border-radius: 0 !important;
+}
+
+/* Enforce pixel font globally in pixel mode if enabled */
+.pixel-mode.use-pixel-font,
+.pixel-mode.use-pixel-font * {
+    font-family: "DotGothic16", monospace, sans-serif !important;
+}
+
+/* Exclude KaTeX from global pixel font if pixel math is disabled */
+.pixel-mode.use-pixel-font:not(.use-pixel-math) .katex,
+.pixel-mode.use-pixel-font:not(.use-pixel-math) .katex * {
+    font-family: KaTeX_Main, "Times New Roman", serif !important;
+}
+
+/* Enforce pixel font for KaTeX if pixel math is enabled */
+.pixel-mode.use-pixel-math .katex,
+.pixel-mode.use-pixel-math .katex * {
+    font-family: "DotGothic16", monospace, sans-serif !important;
+}
+
+/* Adjust font sizes for pixel font readability */
+.pixel-mode .node-title {
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+
+.pixel-mode .type-badge {
+    font-size: 10px;
+    padding: 4px 6px;
+    border: 1px solid rgba(0,0,0,0.2);
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+}
+
+/* UI Panel Overrides */
+.pixel-mode .ui-panel,
+.pixel-mode .editor-modal,
+.pixel-mode .context-menu,
+.pixel-mode .tooltip {
+    border: 2px solid var(--text);
+    box-shadow: 6px 6px 0px rgba(0,0,0,0.2);
+}
+
+.pixel-mode .btn,
+.pixel-mode .btn-icon,
+.pixel-mode input,
+.pixel-mode select,
+.pixel-mode textarea {
+    border: 2px solid var(--border);
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+}
+
+.pixel-mode .btn:active,
+.pixel-mode .btn-icon:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+/* Node Card Overrides */
+.pixel-mode .math-card {
+    border-width: 2px;
+    box-shadow: 6px 6px 0px var(--shadow);
+}
+
+.pixel-mode .math-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px var(--shadow);
+}
+
+/* Icon adjustments */
+.pixel-mode i {
+    /* Make icons slightly blockier if possible, or just crisp */
+    /* image-rendering: pixelated; */ 
+}

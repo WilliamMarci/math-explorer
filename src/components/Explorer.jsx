@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import Icon from './Icon';
 
 const GraphSidebar = React.memo(({ items, links, nodes, rowHeight = 32 }) => {
     const nodeIndexMap = useMemo(() => { const map = new Map(); items.forEach((item, index) => map.set(item.cId, index)); return map; }, [items]);
@@ -68,7 +69,11 @@ const Explorer = ({
     onFocusNode, onTogglePin, onToggleVisibility, onEditNode, onDeleteNode, onAddNode, onAutoArrange,
     t, nodeOrder, setNodeOrder,
     viewMode, setViewMode,
-    hoverClass
+    hoverClass,
+    selectedNodeIds = [],
+    setSelectedNodeIds,
+    settings,
+    icons
 }) => {
     const [navOpen, setNavOpen] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -78,6 +83,8 @@ const Explorer = ({
     const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
     const newNodeMenuRef = useRef(null);
     const portalMenuRef = useRef(null);
+
+    const isPixelMode = settings?.pixelMode;
 
     // Prepare Explorer Items
     const explorerItems = useMemo(() => {
@@ -182,10 +189,53 @@ const Explorer = ({
         dragOverItem.current = null;
     };
 
+    const handleItemClick = (e, item) => {
+        if (!item.activeNode) return;
+        
+        if (e.ctrlKey || e.metaKey) {
+            // Toggle selection
+            if (selectedNodeIds.includes(item.activeNode.id)) {
+                setSelectedNodeIds(prev => prev.filter(id => id !== item.activeNode.id));
+            } else {
+                setSelectedNodeIds(prev => [...prev, item.activeNode.id]);
+            }
+        } else if (e.shiftKey) {
+            // Range selection (simplified: just add to selection for now, or implement range if needed)
+            // Implementing range selection requires knowing the index.
+            // Let's just add for now or do nothing special other than add.
+            // Ideally we find the last selected index and select everything in between.
+            if (selectedNodeIds.length > 0) {
+                const lastSelectedId = selectedNodeIds[selectedNodeIds.length - 1];
+                const lastIdx = explorerItems.findIndex(i => i.activeNode && i.activeNode.id === lastSelectedId);
+                const currentIdx = explorerItems.findIndex(i => i.cId === item.cId);
+                
+                if (lastIdx !== -1 && currentIdx !== -1) {
+                    const start = Math.min(lastIdx, currentIdx);
+                    const end = Math.max(lastIdx, currentIdx);
+                    const rangeIds = explorerItems.slice(start, end + 1).map(i => i.activeNode?.id).filter(Boolean);
+                    const newSet = new Set([...selectedNodeIds, ...rangeIds]);
+                    setSelectedNodeIds(Array.from(newSet));
+                }
+            } else {
+                setSelectedNodeIds([item.activeNode.id]);
+            }
+        } else {
+            // Single select
+            setSelectedNodeIds([item.activeNode.id]);
+            onFocusNode(item.activeNode);
+        }
+    };
+
     // Context Menu
     const handleContextMenu = (e, item) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        // If item is not in selection, select it (and clear others unless ctrl)
+        if (item.activeNode && !selectedNodeIds.includes(item.activeNode.id)) {
+             setSelectedNodeIds([item.activeNode.id]);
+        }
+        
         setContextMenu({ x: e.clientX, y: e.clientY, item });
     };
 
@@ -238,32 +288,32 @@ const Explorer = ({
             {item && item.activeNode ? (
                 <>
                     <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onFocusNode(item.activeNode); onClose(); }}>
-                        <i className="ri-focus-3-line"></i> {t.focus}
+                        <Icon icon={icons?.focus} /> {t.focus}
                     </div>
                     <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onEditNode(item.activeNode.id); onClose(); }}>
-                        <i className="ri-edit-line"></i> {t.edit}
+                        <Icon icon={icons?.edit} /> {t.edit}
                     </div>
                     <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onTogglePin(item.activeNode); onClose(); }}>
-                        <i className="ri-pushpin-line"></i> {item.isPinned ? t.unpin : t.pin}
+                        <Icon icon={item.isPinned ? icons?.unpin : icons?.pin} /> {item.isPinned ? t.unpin : t.pin}
                     </div>
                     <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onToggleVisibility(item.activeNode.contentId); onClose(); }}>
-                        <i className="ri-eye-off-line"></i> {t.hide}
+                        <Icon icon={icons?.hide} /> {t.hide}
                     </div>
                     <div className="h-px bg-[var(--border)] my-1"></div>
                     <div className="px-4 py-2 text-xs cursor-pointer text-red-500 hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onDeleteNode(item.activeNode.id); onClose(); }}>
-                        <i className="ri-delete-bin-line"></i> {t.delete}
+                        <Icon icon={icons?.delete} /> {t.delete}
                     </div>
                 </>
             ) : item ? (
                 // For inactive items (in library but not on canvas)
                 <>
                      <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onToggleVisibility(item.cId); onClose(); }}>
-                        <i className="ri-eye-line"></i> {t.show}
+                        <Icon icon={icons?.view} /> {t.show}
                     </div>
                 </>
             ) : (
                 <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onAutoArrange(); onClose(); }}>
-                    <i className="ri-layout-grid-line"></i> {t.autoArrange}
+                    <Icon icon={icons?.autoArrange} /> {t.autoArrange}
                 </div>
             )}
         </div>
@@ -276,7 +326,7 @@ const Explorer = ({
             <div className={`ui-panel nav-panel ${navOpen ? 'w-64 h-[80vh] open' : 'w-10 h-10'} bg-[var(--panel-bg)] border-r border-[var(--border)] text-[var(--text)]`}>
                 <div className={`ui-header border-b border-[var(--border)] flex justify-between items-center ${!navOpen ? 'p-0 justify-center' : 'pr-2'} ${!navOpen && viewMode ? 'bg-[var(--accent)] text-white' : 'bg-[var(--panel-bg)]'}`}>
                     <div className={`flex items-center gap-2 cursor-pointer transition-colors h-full ${!navOpen ? 'justify-center w-full' : ''}`} onClick={() => setNavOpen(!navOpen)}>
-                        <i className="ri-git-branch-line text-lg"></i> {navOpen && t.explorer}
+                        <Icon icon={icons?.explorer} className="text-lg" /> {navOpen && t.explorer}
                     </div>
                     {navOpen && (
                         <div className="flex items-center gap-2">
@@ -285,9 +335,9 @@ const Explorer = ({
                                 onClick={() => setViewMode(!viewMode)}
                                 title={viewMode ? "View Mode (Read Only)" : "Edit Mode"}
                              >
-                                <i className={viewMode ? "ri-eye-line" : "ri-edit-line"}></i>
+                                <Icon icon={viewMode ? icons?.view : icons?.edit} />
                              </button>
-                             <i className="ri-arrow-up-s-line cursor-pointer" onClick={() => setNavOpen(!navOpen)}></i>
+                             <Icon icon={icons?.arrowUp} className="cursor-pointer" onClick={() => setNavOpen(!navOpen)} />
                         </div>
                     )}
                 </div>
@@ -296,7 +346,9 @@ const Explorer = ({
                 <div className="panel-content-wrapper flex flex-col h-full">
                     <div className="p-2 flex gap-2 items-center z-10 border-b border-[var(--border)] bg-[var(--panel-bg)]">
                         <div className="relative flex-1">
-                            <i className="ri-search-line absolute left-2 top-1.5 text-[var(--muted)] text-xs"></i>
+                            <div className="absolute left-2 top-1.5 text-[var(--muted)] text-xs pointer-events-none">
+                                <Icon icon={icons?.search} />
+                            </div>
                             <input className="w-full pl-7 pr-2 py-1.5 text-xs rounded outline-none border border-[var(--border)] bg-[var(--input-bg)] text-[var(--text)] focus:border-[var(--accent)]" placeholder={t.searchText} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
                         <div className="relative" ref={newNodeMenuRef}>
@@ -306,14 +358,14 @@ const Explorer = ({
                                     onClick={() => handleAddWithType(lastCreatedType)} 
                                     title={`${t.newNode} (${lastCreatedType})`}
                                 >
-                                    <i className="ri-add-line"></i>
+                                    <Icon icon={icons?.add} />
                                 </div>
                                 <div className="w-px h-full bg-white/20"></div>
                                 <div 
                                     className={`split-btn-arrow px-1 h-full flex items-center justify-center cursor-pointer hover:opacity-90 text-white ${NODE_COLORS[lastCreatedType]}`} 
                                     onClick={() => setShowNewNodeMenu(!showNewNodeMenu)}
                                 >
-                                    <i className="ri-arrow-down-s-line text-[10px]"></i>
+                                    <Icon icon={icons?.arrowDown} className="text-[10px]" />
                                 </div>
                             </div>
                             {showNewNodeMenu && createPortal(
@@ -337,17 +389,21 @@ const Explorer = ({
                     <div className="flex-1 overflow-y-auto relative" onContextMenu={handlePanelContextMenu}>
                         <GraphSidebar items={explorerItems} links={links} nodes={nodes} rowHeight={32} />
                         <div className="relative z-10 pb-24">
-                            {explorerItems.map((item, index) => (
+                            {explorerItems.map((item, index) => {
+                                const isSelected = item.activeNode && selectedNodeIds.includes(item.activeNode.id);
+                                return (
                                 <div key={item.cId} draggable={!searchTerm} onDragStart={(e) => handleDragStart(e, index)} onDragEnter={(e) => handleDragEnter(e, index)} onDragEnd={handleDragEnd} onDragOver={(e) => e.preventDefault()}
-                                    className={`group flex items-center gap-2 pl-10 pr-2 h-[32px] cursor-pointer transition-colors ${hoverClass}`}
+                                    className={`group flex items-center gap-2 pl-10 pr-2 h-[32px] cursor-pointer transition-colors ${isSelected ? 'bg-blue-500/20' : hoverClass}`}
+                                    onClick={(e) => handleItemClick(e, item)}
                                     onDoubleClick={() => item.activeNode && onFocusNode(item.activeNode)} onContextMenu={(e) => handleContextMenu(e, item)}
                                 >
                                     <div className={`flex-1 min-w-0 flex items-center justify-between ${!item.activeNode ? 'opacity-50 grayscale' : ''}`}>
                                         <div className="truncate text-xs font-medium leading-tight select-none text-[var(--text)]">{item.content.title || "Untitled"}</div>
-                                        {item.activeNode && item.isPinned && <i className="ri-pushpin-fill text-[10px] text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity"></i>}
+                                        {item.activeNode && item.isPinned && <Icon icon={icons?.unpin} className="text-[10px] text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity" />}
                                     </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                             {explorerItems.length === 0 && <div className="text-center opacity-40 text-xs py-4 pl-8">No nodes found</div>}
                         </div>
                     </div>

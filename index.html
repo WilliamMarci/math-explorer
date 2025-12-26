@@ -5,7 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Math Explorer V4</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+      @font-face {
+        font-family: "remixicon";
+        src: url('/src/assets/fonts/remixicon.woff2') format('woff2');
+        font-display: swap;
+      }
+      /* Fallback to CDN if local fails (not really possible in CSS like this, but we can include the CSS file content) */
+    </style>
+    <link href="/src/assets/fonts/remixicon.css" rel="stylesheet">
+    <style>
+      @font-face {
+        font-family: 'DotGothic16';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('/src/assets/fonts/DotGothic16.ttf') format('truetype');
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

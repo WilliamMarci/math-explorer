@@ -96,4 +96,6 @@ v = \frac{d {{pos}} }{d {{time}} }
 - [ ] add export to png/svg/pdf
 - [ ] build as electron app
 
-Fix
+## FixMe
+
+- [ ] when we open explorer - item - right click - show, it take a long time to response. find bug

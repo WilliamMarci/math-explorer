@@ -16,7 +16,8 @@ export const useContextMenuActions = ({
     expandedState,
     setExpandedState,
     transform,
-    actions // from useGraphActions
+    actions, // from useGraphActions
+    selectedNodeIds = []
 }) => {
     const { spawnNode, deleteNode, toggleVisibility } = actions;
 
@@ -24,7 +25,45 @@ export const useContextMenuActions = ({
         const { x, y, targetId } = contextMenu;
         setContextMenu(prev => ({ ...prev, visible: false }));
 
+        // Helper for alignment
+        const getSelectedNodes = () => {
+            // If we have a selection, use it.
+            // If targetId is in selection, use selection.
+            // If targetId is NOT in selection, use just targetId (but alignment needs >1).
+            // Actually, if we right click a node that is NOT in selection, usually selection clears or changes to that node.
+            // But here we assume if we see alignment options, we have >1 selected.
+            return graphData.current.nodes.filter(n => selectedNodeIds.includes(n.id));
+        };
+
+        const alignNodes = (axis, type) => {
+            const nodes = getSelectedNodes();
+            if (nodes.length < 2) return;
+
+            let value;
+            if (axis === 'x') {
+                if (type === 'min') value = Math.min(...nodes.map(n => n.x));
+                else if (type === 'max') value = Math.max(...nodes.map(n => n.x));
+                else if (type === 'center') value = nodes.reduce((sum, n) => sum + n.x, 0) / nodes.length;
+                
+                nodes.forEach(n => { n.fx = value; n.x = value; });
+            } else {
+                if (type === 'min') value = Math.min(...nodes.map(n => n.y));
+                else if (type === 'max') value = Math.max(...nodes.map(n => n.y));
+                else if (type === 'center') value = nodes.reduce((sum, n) => sum + n.y, 0) / nodes.length;
+                
+                nodes.forEach(n => { n.fy = value; n.y = value; });
+            }
+            updateSimulation();
+        };
+
         switch (action) {
+            case 'align_left': alignNodes('x', 'min'); break;
+            case 'align_right': alignNodes('x', 'max'); break;
+            case 'align_top': alignNodes('y', 'min'); break;
+            case 'align_bottom': alignNodes('y', 'max'); break;
+            case 'align_center_h': alignNodes('x', 'center'); break;
+            case 'align_center_v': alignNodes('y', 'center'); break;
+
             case 'new':
                 // Create new node at mouse position if available, else center
                 const newContentId = `topic_${Date.now()}`; 
@@ -162,7 +201,7 @@ export const useContextMenuActions = ({
                 break;
             default: break;
         }
-    }, [contextMenu, setContextMenu, graphData, library, setLibrary, clipboard, setClipboard, setEditingNodeId, updateSimulation, svgRef, zoomBehavior, expandedState, setExpandedState, transform, spawnNode, deleteNode, toggleVisibility]);
+    }, [contextMenu, setContextMenu, graphData, library, setLibrary, clipboard, setClipboard, setEditingNodeId, updateSimulation, svgRef, zoomBehavior, expandedState, setExpandedState, transform, spawnNode, deleteNode, toggleVisibility, selectedNodeIds]);
 
     return handleContextAction;
 };

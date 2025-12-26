@@ -17,7 +17,10 @@ export const THEME_PRESETS = {
         '--shadow': 'rgba(0,0,0,0.08)',
         '--accent': '#3b82f6',
         '--muted': '#64748b',
-        '--hover-bg': '#f1f5f9'
+        '--hover-bg': '#f1f5f9',
+        '--radius': '10px',
+        '--font-family': 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        '--note-text': '#334155'
     },
     sepia: {
         '--bg': '#fdf6e3',
@@ -30,7 +33,10 @@ export const THEME_PRESETS = {
         '--shadow': 'rgba(0,0,0,0.1)',
         '--accent': '#b58900',
         '--muted': '#93a1a1',
-        '--hover-bg': '#eee8d5'
+        '--hover-bg': '#eee8d5',
+        '--radius': '10px',
+        '--font-family': 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
+        '--note-text': '#657b83'
     },
     blackboard: {
         '--bg': '#1e293b',
@@ -43,7 +49,10 @@ export const THEME_PRESETS = {
         '--shadow': 'rgba(0,0,0,0.3)',
         '--accent': '#60a5fa',
         '--muted': '#94a3b8',
-        '--hover-bg': '#334155'
+        '--hover-bg': '#334155',
+        '--radius': '10px',
+        '--font-family': 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        '--note-text': '#e2e8f0'
     },
     blueprint: {
         '--bg': '#1e40af',
@@ -56,8 +65,11 @@ export const THEME_PRESETS = {
         '--shadow': 'rgba(0,0,0,0.2)',
         '--accent': '#93c5fd',
         '--muted': '#bfdbfe',
-        '--hover-bg': '#172554'
-    },
+        '--hover-bg': '#172554',
+        '--radius': '4px',
+        '--font-family': 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+        '--note-text': '#dbeafe'
+    }
 };
 
 // --- Global Colors ---

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { THEME_PRESETS } from '../../theme';
+import Icon from '../Icon';
 
-const GeneralSettings = ({ settings, setSettings, t }) => {
+const GeneralSettings = ({ settings, setSettings, t, icons }) => {
     const languages = [
         { code: 'en', label: 'English' },
         { code: 'zh', label: '中文' },
@@ -34,7 +35,7 @@ const GeneralSettings = ({ settings, setSettings, t }) => {
                         onClick={() => setIsLangOpen(!isLangOpen)}
                     >
                         <span>{currentLang.label}</span>
-                        <i className={`ri-arrow-down-s-line transition-transform ${isLangOpen ? 'rotate-180' : ''}`}></i>
+                        <Icon icon={icons?.arrowDown} className={`transition-transform ${isLangOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isLangOpen && (
                         <div className="mt-1 w-full border border-[var(--border)] rounded shadow-sm bg-[var(--panel-bg)] overflow-hidden transition-all">

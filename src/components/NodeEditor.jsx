@@ -3,10 +3,12 @@ import { COLORS, NODE_TYPES } from '../theme';
 import { InteractiveMath, RichViewer } from './Common';
 import ColorPalette from './ColorPalette';
 import SegmentList from './SegmentList';
+import Icon from './Icon';
 
-const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingIds, I18N }) => {
+const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingIds, I18N, settings, icons }) => {
     const t = I18N[lang];
     const [contentId, setContentId] = useState(node.contentId);
+    const isPixelMode = settings?.pixelMode;
     
     const [data, setData] = useState({
         title: content.title || "", 
@@ -82,10 +84,10 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
                 {/* Header */}
                 <div className="px-6 py-4 flex justify-between items-center shrink-0 border-b border-[var(--border)]" style={{ backgroundColor: 'var(--panel-bg)' }}>
                     <h3 className="text-lg font-bold flex items-center gap-2 select-none text-[var(--text)]">
-                        <i className="ri-edit-circle-line text-[var(--accent)]"></i> {t.editNode}
+                        <Icon icon={icons?.editCircle} className="text-[var(--accent)]" /> {t.editNode}
                     </h3>
                     <button onClick={onClose} className="text-[var(--muted)] hover:text-red-500 transition-colors">
-                        <i className="ri-close-line text-2xl"></i>
+                        <Icon icon={icons?.close} className="text-2xl" />
                     </button>
                 </div>
                 
@@ -147,11 +149,12 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
                                 </div>
                             </div>
 
+                            {data.type !== 'note' && (
                             <div>
                                 <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.template}</label>
                                 <textarea className={`${inputClass} font-mono text-sm h-24`} value={data.template} onChange={e => setData({...data, template: e.target.value})} placeholder="\frac{ {{num}} }{ {{den}} }" />
-                                {data.type === 'note' && <div className="text-xs text-orange-500 mt-1">Leave template empty for a pure sticky note.</div>}
                             </div>
+                            )}
 
                             <div>
                                 <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.note}</label>
@@ -169,6 +172,8 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
                                 onDelete={(idx) => setData({...data, segments: data.segments.filter((_, i) => i !== idx)})}
                                 onAdd={() => setData({...data, segments: [...data.segments, { key: data.segments.length.toString(), text: "?", type: "text" }]})}
                                 t={t}
+                                settings={settings}
+                                icons={icons}
                             />
                         </div>
                     </div>

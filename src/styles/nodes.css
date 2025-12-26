@@ -41,7 +41,7 @@
     max-width: none; 
     
     box-shadow: 0 4px 6px -1px var(--shadow), 0 2px 4px -1px var(--shadow);
-    border-radius: 10px;
+    border-radius: var(--radius, 10px);
     position: relative; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: visible; 
 }
@@ -94,7 +94,7 @@
 .type-badge {
     font-size: 10px; 
     padding: 3px 8px; 
-    border-radius: 6px; 
+    border-radius: var(--radius, 6px); 
     color: #fff;
     font-weight: 700;
     text-transform: uppercase; 
@@ -166,13 +166,17 @@
     box-shadow: 0 4px 6px -1px var(--shadow);
 }
 .node-type-note .node-header { 
-    border-bottom: 1px dashed var(--border); 
-    padding-bottom: 8px; 
+    border-bottom: none; 
+    padding-bottom: 4px; 
+    min-height: 32px;
 }
-.node-type-note .node-body > .markdown-body { 
+.node-type-note .node-body {
+    padding: 8px 12px;
+}
+.node-type-note .node-note { 
     border-top: none; 
     margin-top: 0; 
-    padding-top: 8px; 
+    padding-top: 0; 
 }
 
 /* --- Interactive Math --- */
@@ -212,19 +216,72 @@
 }
 
 /* --- Note (Markdown) --- */
-.node-body > .markdown-body { 
+.node-note {
     margin-top: 12px; 
     padding-top: 8px; 
     border-top: 1px dashed var(--border); 
+    width: 100%;
+}
+
+.node-note .markdown-body { 
     font-size: 13px; 
     line-height: 1.6; 
-    color: var(--muted) !important;
-    width: 0;
-    min-width: 100%;
+    color: var(--note-text) !important;
+    width: 100%;
     white-space: normal; 
     word-wrap: break-word; 
     overflow-wrap: break-word;
 }
-.node-body > .markdown-body p { margin-bottom: 0.5em; }
-.node-body > .markdown-body p:last-child { margin-bottom: 0; }
-.node-body > .markdown-body a { color: var(--accent); text-decoration: underline; }
+.node-note .markdown-body p { margin-bottom: 0.5em; }
+.node-note .markdown-body p:last-child { margin-bottom: 0; }
+.node-note .markdown-body a { color: var(--accent); text-decoration: underline; }
+
+/* --- Minimal Mode --- */
+.math-card.minimal-mode {
+    min-width: auto;
+    width: auto;
+    border-radius: 0;
+    padding: 0;
+}
+
+/* Ensure note nodes in minimal mode have some width if they have content */
+.math-card.minimal-mode.node-type-note {
+    min-width: 150px;
+}
+
+.math-card.minimal-mode .node-body {
+    padding: 4px 8px;
+}
+
+.math-card.minimal-mode .interactive-math-container {
+    font-size: 1em;
+}
+
+/* Expand on hover */
+.math-card.minimal-mode:hover {
+    min-width: 240px;
+    border-radius: var(--radius, 10px);
+    z-index: 100;
+}
+
+.math-card.minimal-mode:hover .node-body {
+    padding: 16px;
+}
+
+.math-card.minimal-mode:hover .interactive-math-container {
+    font-size: 1.15em;
+}
+
+.math-card.minimal-mode .node-header,
+.math-card.minimal-mode .node-actions {
+    display: none;
+}
+
+.math-card.minimal-mode:hover .node-header,
+.math-card.minimal-mode:hover .node-actions {
+    display: flex;
+}
+
+/* Note visibility is handled by JS classes now */
+/* .math-card.minimal-mode .node-note { display: none; } */
+/* .math-card.minimal-mode:hover .node-note { display: block; } */

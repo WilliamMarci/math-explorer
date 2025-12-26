@@ -1,9 +1,11 @@
 import React from 'react';
 import ColorPalette from './ColorPalette';
 import { StyleIcons, DashIcons } from './StyleIcons';
+import Icon from './Icon';
 
-const SegmentList = ({ segments, onUpdate, onDelete, onAdd, t }) => {
+const SegmentList = ({ segments, onUpdate, onDelete, onAdd, t, settings, icons }) => {
     const inputClass = "w-full px-3 py-2 rounded text-sm outline-none transition-colors bg-[var(--input-bg)] text-[var(--text)] border border-[var(--border)] focus:border-[var(--accent)]";
+    const isPixelMode = settings?.pixelMode;
 
     return (
         <div className="space-y-3 p-4 rounded border border-[var(--border)] bg-[var(--input-bg)] flex-1 overflow-y-auto min-h-[400px]">
@@ -29,7 +31,7 @@ const SegmentList = ({ segments, onUpdate, onDelete, onAdd, t }) => {
                         <select className={`${inputClass} w-24 py-1`} value={seg.type} onChange={e => onUpdate(idx, 'type', e.target.value)}>
                             <option value="text">Text</option><option value="link">Link</option>
                         </select>
-                        <button className="text-red-400 hover:text-red-600 px-2 transition-colors" onClick={() => onDelete(idx)}><i className="ri-delete-bin-line"></i></button>
+                        <button className="text-red-400 hover:text-red-600 px-2 transition-colors" onClick={() => onDelete(idx)}><Icon icon={icons?.delete} /></button>
                     </div>
                     
                     {seg.type === 'link' && (
@@ -53,7 +55,7 @@ const SegmentList = ({ segments, onUpdate, onDelete, onAdd, t }) => {
                                     onClick={() => onUpdate(idx, '_connSettingsOpen', !seg._connSettingsOpen)}
                                     title="Customize Connection"
                                 >
-                                    <i className="ri-settings-3-fill text-xs"></i>
+                                    <Icon icon={icons?.customize} className="text-xs" />
                                 </button>
                             </div>
 
@@ -136,7 +138,7 @@ const SegmentList = ({ segments, onUpdate, onDelete, onAdd, t }) => {
                 </div>
             ))}
             <button className="btn w-full border-dashed border-[var(--border)] text-[var(--muted)] hover:bg-[var(--panel-bg)] hover:text-[var(--text)] hover:border-[var(--text)] transition-all" onClick={onAdd}>
-                <i className="ri-add-line"></i> {t.addSegment}
+                <Icon icon={icons?.add} /> {t.addSegment}
             </button>
         </div>
     );

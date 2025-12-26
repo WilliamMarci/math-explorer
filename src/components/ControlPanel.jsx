@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import SettingsPanel from './Settings/SettingsPanel';
+import Icon from './Icon';
 
-const ControlPanel = ({ settings, setSettings, shortcuts, setShortcuts, t, onExport, onImport }) => {
+const ControlPanel = ({ settings, setSettings, shortcuts, setShortcuts, t, onExport, onImport, icons }) => {
     const [ctrlOpen, setCtrlOpen] = useState(false);
 
     return (
@@ -15,12 +16,13 @@ const ControlPanel = ({ settings, setSettings, shortcuts, setShortcuts, t, onExp
                     t={t} 
                     onExport={onExport} 
                     onImport={onImport} 
+                    icons={icons}
                 />
             </div>
 
             <div className="ui-header absolute bottom-0 left-0 w-full border-t border-[var(--border)] bg-[var(--panel-bg)]" onClick={() => setCtrlOpen(!ctrlOpen)}>
-                <div className="flex items-center gap-2"><i className="ri-settings-3-line text-lg"></i> {ctrlOpen && t.settings}</div>
-                {ctrlOpen && <i className="ri-arrow-down-s-line"></i>}
+                <div className="flex items-center gap-2"><Icon icon={icons?.settings} className="text-lg" /> {ctrlOpen && t.settings}</div>
+                {ctrlOpen && <Icon icon={icons?.arrowDown} />}
             </div>
         </div>
     );

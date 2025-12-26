@@ -10,7 +10,8 @@ export const useGraphActions = ({
     updateSimulation,
     setEditingNodeId,
     library,
-    setNodeOrder
+    setNodeOrder,
+    saveHistory
 }) => {
     const nodeCache = useRef({});
 
@@ -48,7 +49,8 @@ export const useGraphActions = ({
         
         graphData.current.nodes.push(newNode); 
         updateSimulation();
-    }, [graphData, setLibrary, updateSimulation]);
+        if (saveHistory) setTimeout(saveHistory, 50);
+    }, [graphData, setLibrary, updateSimulation, saveHistory]);
 
     const spawnNode = useCallback((contentId, posX, posY, transform, parentId = null) => {
         const newNodeId = `node_${Date.now()}`;
@@ -67,7 +69,8 @@ export const useGraphActions = ({
             graphData.current.links.push({ source: parentId, target: newNodeId });
         }
         updateSimulation();
-    }, [graphData, updateSimulation]);
+        if (saveHistory) setTimeout(saveHistory, 50);
+    }, [graphData, updateSimulation, saveHistory]);
 
     const deleteNode = useCallback((nodeId) => {
         if (confirm("Delete this node?")) {
@@ -92,10 +95,11 @@ export const useGraphActions = ({
                     return next;
                 });
             }
+            if (saveHistory) setTimeout(saveHistory, 50);
             return true;
         }
         return false;
-    }, [graphData, updateSimulation, setEditingNodeId, setNodeOrder, setLibrary]);
+    }, [graphData, updateSimulation, setEditingNodeId, setNodeOrder, setLibrary, saveHistory]);
 
     const toggleVisibility = useCallback((contentId, transform) => {
         const existingNode = graphData.current.nodes.find(n => n.contentId === contentId);
@@ -254,7 +258,8 @@ export const useGraphActions = ({
             }
         }
         updateSimulation();
-    }, [graphData, updateSimulation, library, setExpandedState, reverseConnections]);
+        if (saveHistory) setTimeout(saveHistory, 50);
+    }, [graphData, updateSimulation, library, setExpandedState, reverseConnections, saveHistory]);
 
     const handleToggle = useCallback((parentId, segKey, targetContentId, color) => {
         const stateKey = `${parentId}-${segKey}`;
@@ -325,7 +330,8 @@ export const useGraphActions = ({
             }
         }
         updateSimulation();
-    }, [graphData, library, setExpandedState, setLibrary, updateSimulation]);
+        if (saveHistory) setTimeout(saveHistory, 50);
+    }, [graphData, library, setExpandedState, setLibrary, updateSimulation, saveHistory]);
 
     const handleSaveNode = useCallback((nodeId, newContentId, newData, newColor) => {
         const node = graphData.current.nodes.find(n => n.id === nodeId);
@@ -377,7 +383,8 @@ export const useGraphActions = ({
             setNodes([...graphData.current.nodes]);
         }
         if (setEditingNodeId) setEditingNodeId(null);
-    }, [graphData, setLibrary, setNodes, setEditingNodeId]);
+        if (saveHistory) setTimeout(saveHistory, 50);
+    }, [graphData, setLibrary, setNodes, setEditingNodeId, saveHistory]);
 
     return {
         addNode,

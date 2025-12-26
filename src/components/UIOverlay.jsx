@@ -12,7 +12,9 @@ const UIOverlay = ({
     I18N, 
     nodeOrder, setNodeOrder, 
     viewMode, setViewMode, 
-    shortcuts, setShortcuts 
+    shortcuts, setShortcuts,
+    selectedNodeIds, setSelectedNodeIds,
+    icons
 }) => {
     const t = I18N[settings.lang];
     const isDarkTheme = ['blackboard', 'blueprint'].includes(settings.theme);
@@ -27,6 +29,7 @@ const UIOverlay = ({
                 visible={settings.showMinimap} 
                 labelType={settings.minimapLabelType} 
                 library={library} 
+                settings={settings}
             />
 
             <Explorer 
@@ -46,6 +49,10 @@ const UIOverlay = ({
                 onAutoArrange={onAutoArrange}
                 t={t} 
                 hoverClass={hoverClass}
+                selectedNodeIds={selectedNodeIds}
+                setSelectedNodeIds={setSelectedNodeIds}
+                settings={settings}
+                icons={icons}
             />
 
             <ControlPanel 
@@ -55,7 +62,8 @@ const UIOverlay = ({
                 setShortcuts={setShortcuts} 
                 t={t} 
                 onExport={onExport} 
-                onImport={onImport} 
+                onImport={onImport}
+                icons={icons}
             />
         </>
     );

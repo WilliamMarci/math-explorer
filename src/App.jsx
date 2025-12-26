@@ -11,10 +11,13 @@ import { RichViewer } from './components/Common';
 import Canvas from './components/Canvas';
 
 import { I18N } from './constants';
+import { ICONS, PIXEL_ICONS } from './icons';
 import { useSimulation } from './hooks/useSimulation';
 import { useGraphState } from './hooks/useGraphState';
 import { useGraphActions } from './hooks/useGraphActions';
 import { useContextMenuActions } from './hooks/useContextMenuActions';
+import { useCanvasInteraction } from './hooks/useCanvasInteraction';
+import { useHistory } from './hooks/useHistory';
 
 // Import local scene data
 import localScene from '../scene.json';
@@ -59,11 +62,30 @@ const App = () => {
     const [settings, setSettings] = useState({ 
         theme: 'auto', gravity: 400, centering: 10, distance: 350, 
         showTooltips: true, showMinimap: true, lang: 'en',
-        showEdgeLabels: true, edgeLabelMode: 'side', edgeLabelBg: 'none'
+        showEdgeLabels: true, edgeLabelMode: 'side', edgeLabelBg: 'none',
+        minimalMode: false,
+        pixelMode: false,
+        pixelFont: true,
+        pixelMath: true
     });
     
+    const icons = settings.pixelMode ? PIXEL_ICONS : ICONS;
+    
+    // --- History ---
+    const { pushState, undo, redo, canUndo, canRedo } = useHistory({
+        library: localScene.library,
+        nodes: localScene.scene.nodes,
+        links: localScene.scene.links,
+        expandedState: localScene.scene.expandedState || {}
+    });
+
     // --- Refs ---
     const svgRef = useRef(null);
+    const libraryRef = useRef(library);
+    const expandedStateRef = useRef(expandedState);
+
+    useEffect(() => { libraryRef.current = library; }, [library]);
+    useEffect(() => { expandedStateRef.current = expandedState; }, [expandedState]);
 
     const handleCanvasContextMenu = (e) => {
         e.preventDefault();
@@ -88,6 +110,61 @@ const App = () => {
         setLinks([...graphData.current.links]);
     }, [simulationRef, setNodes, setLinks, graphData]);
 
+    const handleUndo = useCallback(() => {
+        const state = undo();
+        if (state) {
+            setLibrary(state.library);
+            setExpandedState(state.expandedState);
+            setNodes(state.nodes);
+            setLinks(state.links);
+            graphData.current.nodes = state.nodes.map(n => ({...n})); // Re-create objects for D3
+            graphData.current.links = state.links.map(l => ({...l}));
+            updateSimulation();
+        }
+    }, [undo, setLibrary, setExpandedState, setNodes, setLinks, graphData, updateSimulation]);
+
+    const handleRedo = useCallback(() => {
+        const state = redo();
+        if (state) {
+            setLibrary(state.library);
+            setExpandedState(state.expandedState);
+            setNodes(state.nodes);
+            setLinks(state.links);
+            graphData.current.nodes = state.nodes.map(n => ({...n}));
+            graphData.current.links = state.links.map(l => ({...l}));
+            updateSimulation();
+        }
+    }, [redo, setLibrary, setExpandedState, setNodes, setLinks, graphData, updateSimulation]);
+
+    const saveHistory = useCallback(() => {
+        // Use refs to get latest state without closure staleness
+        // We need to ensure this runs AFTER state updates have been reflected in refs
+        pushState({
+            library: JSON.parse(JSON.stringify(libraryRef.current)),
+            nodes: graphData.current.nodes.map(n => ({ ...n })),
+            links: graphData.current.links.map(l => ({ 
+                ...l, 
+                source: typeof l.source === 'object' ? l.source.id : l.source, 
+                target: typeof l.target === 'object' ? l.target.id : l.target 
+            })),
+            expandedState: { ...expandedStateRef.current }
+        });
+    }, [pushState, graphData]); // Stable dependencies
+
+    // --- Interaction Hook ---
+    const { selectionBox, handleMouseDown: handleCanvasMouseDown, handleDragStart } = useCanvasInteraction({
+        svgRef,
+        transform,
+        nodes,
+        selectedNodeIds,
+        setSelectedNodeIds,
+        simulationRef,
+        setFocusedNodeId,
+        viewMode,
+        isSpacePressed,
+        onDragEnd: saveHistory
+    });
+
     const actions = useGraphActions({
         graphData,
         setLibrary,
@@ -96,7 +173,8 @@ const App = () => {
         updateSimulation,
         setEditingNodeId,
         library,
-        setNodeOrder
+        setNodeOrder,
+        saveHistory
     });
 
     const { addNode, deleteNode, toggleVisibility, handleToggle, handleSaveNode } = actions;
@@ -116,7 +194,8 @@ const App = () => {
         expandedState,
         setExpandedState,
         transform,
-        actions
+        actions,
+        selectedNodeIds
     });
 
     // --- Effects ---
@@ -172,6 +251,15 @@ const App = () => {
                     case 's':
                         e.preventDefault();
                         // Save?
+                        break;
+                    case 'z':
+                        e.preventDefault();
+                        if (e.shiftKey) handleRedo();
+                        else handleUndo();
+                        break;
+                    case 'y':
+                        e.preventDefault();
+                        handleRedo();
                         break;
                 }
             }
@@ -244,54 +332,7 @@ const App = () => {
     };
 
     // --- Interaction Handlers ---
-    const handleDragStart = (e, node) => {
-        if (e.button !== 0 || e.target.closest('button')) return; 
-        e.stopPropagation();
-        setFocusedNodeId(node.id);
-        simulationRef.current.alphaTarget(0.3).restart(); 
-        
-        // Store initial pin state
-        const wasPinned = node.fx !== null && node.fx !== undefined;
-        
-        // Set initial fixed position to current position (to start drag)
-        node.fx = node.x; 
-        node.fy = node.y;
-        
-        const isCtrlPressed = e.ctrlKey;
-        
-        const svg = svgRef.current;
-        const rect = svg.getBoundingClientRect();
-        
-        // Calculate offset from node center to mouse click
-        const mouseX = ((e.clientX - rect.left) - transform.x) / transform.k;
-        const mouseY = ((e.clientY - rect.top) - transform.y) / transform.k;
-        const offsetX = node.x - mouseX;
-        const offsetY = node.y - mouseY;
-
-        const move = (ev) => { 
-            const curX = ((ev.clientX - rect.left) - transform.x) / transform.k;
-            const curY = ((ev.clientY - rect.top) - transform.y) / transform.k;
-            node.fx = curX + offsetX; 
-            node.fy = curY + offsetY; 
-        };
-        
-        const up = () => { 
-            simulationRef.current.alphaTarget(0); 
-            window.removeEventListener('mousemove', move); 
-            window.removeEventListener('mouseup', up); 
-            
-            // If Ctrl was pressed, keep it pinned.
-            // If Ctrl was NOT pressed, restore original pin state.
-            // If it was NOT pinned originally, unpin it (set fx/fy to null).
-            // If it WAS pinned originally, keep it pinned (fx/fy remain set to new pos).
-            if (!isCtrlPressed && !wasPinned) {
-                node.fx = null;
-                node.fy = null;
-            }
-        };
-        window.addEventListener('mousemove', move); 
-        window.addEventListener('mouseup', up);
-    };
+    // handleDragStart is now provided by useCanvasInteraction
 
     const handlePinNode = (node) => {
         if (node.fx != null) { node.fx = null; node.fy = null; } 
@@ -318,21 +359,89 @@ const App = () => {
 
     // --- Export/Import ---
     const handleExportClick = () => setShowExportModal(true);
-    const performExport = (filename) => {
-        if (!filename.toLowerCase().endsWith('.mathmap') && !filename.toLowerCase().endsWith('.json')) filename += '.mathmap';
-        const data = { 
-            library, 
-            scene: { 
-                nodes: graphData.current.nodes.map(n => ({ id: n.id, contentId: n.contentId, x: n.x, y: n.y, fx: n.fx, fy: n.fy, color: n.color })), 
-                links: graphData.current.links.map(l => ({ source: l.source.id || l.source, target: l.target.id || l.target })), 
-                expandedState 
-            } 
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});
-        const url = URL.createObjectURL(blob); 
-        const a = document.createElement('a'); 
-        a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+    const performExport = (filename, format = 'json') => {
+        if (format === 'json') {
+            if (!filename.toLowerCase().endsWith('.mathmap') && !filename.toLowerCase().endsWith('.json')) filename += '.mathmap';
+            const data = { 
+                library, 
+                scene: { 
+                    nodes: graphData.current.nodes.map(n => ({ id: n.id, contentId: n.contentId, x: n.x, y: n.y, fx: n.fx, fy: n.fy, color: n.color })), 
+                    links: graphData.current.links.map(l => ({ source: l.source.id || l.source, target: l.target.id || l.target })), 
+                    expandedState 
+                } 
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});
+            const url = URL.createObjectURL(blob); 
+            const a = document.createElement('a'); 
+            a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+        } else if (format === 'svg' || format === 'png') {
+            // Basic SVG/PNG Export using foreignObject
+            // Note: This requires styles to be inline or available. 
+            // Since we use Tailwind, styles are computed.
+            // This is a best-effort implementation without external libraries.
+            
+            const svg = svgRef.current;
+            if (!svg) return;
+
+            const width = svg.clientWidth;
+            const height = svg.clientHeight;
+            
+            // Clone the node to avoid modifying the DOM
+            const clone = svg.cloneNode(true);
+            
+            // Wrap in SVG
+            const data = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+                <foreignObject width="100%" height="100%">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;background-color:var(--bg);color:var(--text)">
+                        ${new XMLSerializer().serializeToString(clone)}
+                    </div>
+                </foreignObject>
+            </svg>
+            `;
+
+            if (format === 'svg') {
+                const blob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename + '.svg'; a.click(); URL.revokeObjectURL(url);
+            } else {
+                const img = new Image();
+                const blob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+                const url = URL.createObjectURL(blob);
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg') || 'white';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(img, 0, 0);
+                    const pngUrl = canvas.toDataURL('image/png');
+                    const a = document.createElement('a');
+                    a.href = pngUrl; a.download = filename + '.png'; a.click();
+                    URL.revokeObjectURL(url);
+                };
+                img.src = url;
+            }
+        }
     };
+
+    // Auto-save
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const data = {
+                library,
+                scene: {
+                    nodes: graphData.current.nodes.map(n => ({ id: n.id, contentId: n.contentId, x: n.x, y: n.y, fx: n.fx, fy: n.fy, color: n.color })),
+                    links: graphData.current.links.map(l => ({ source: l.source.id || l.source, target: l.target.id || l.target })),
+                    expandedState
+                }
+            };
+            localStorage.setItem('mathmap_autosave', JSON.stringify(data));
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, [library, expandedState, nodes, links]); // Debounced auto-save
 
     const handleImport = (e) => {
         const file = e.target.files[0]; if (!file) return;
@@ -353,7 +462,7 @@ const App = () => {
     };
 
     return (
-        <div className="app-container">
+        <div className={`app-container ${settings.pixelMode ? 'pixel-mode' : ''} ${settings.pixelMode && settings.pixelFont !== false ? 'use-pixel-font' : ''} ${settings.pixelMode && settings.pixelMath !== false ? 'use-pixel-math' : ''}`}>
             <div className="grid-bg absolute inset-0 opacity-50 pointer-events-none"></div>
             
             {/* UI Overlay: Sibling of SVG, so right-clicks here won't bubble to SVG */}
@@ -368,11 +477,16 @@ const App = () => {
                 nodeOrder={nodeOrder} setNodeOrder={setNodeOrder}
                 viewMode={viewMode} setViewMode={setViewMode}
                 shortcuts={shortcuts} setShortcuts={setShortcuts}
+                selectedNodeIds={selectedNodeIds}
+                setSelectedNodeIds={setSelectedNodeIds}
+                icons={icons}
             />
             
             <ExportModal 
                 isOpen={showExportModal} onClose={() => setShowExportModal(false)} 
                 onConfirm={performExport} lang={settings.lang} 
+                settings={settings}
+                icons={icons}
             />
 
             <ContextMenu 
@@ -381,6 +495,9 @@ const App = () => {
                 hasClipboard={!!clipboard} onAction={handleContextAction} 
                 onClose={() => setContextMenu(prev => ({ ...prev, visible: false }))}
                 lang={settings.lang}
+                selectedCount={selectedNodeIds.length}
+                settings={settings}
+                icons={icons}
             />
 
             {tooltip && settings.showTooltips && (
@@ -401,6 +518,8 @@ const App = () => {
                             onClose={() => setEditingNodeId(null)} 
                             onSave={handleSaveNode} onDelete={deleteNode} 
                             lang={settings.lang} existingIds={Object.keys(library)} I18N={I18N} 
+                            settings={settings}
+                            icons={icons}
                         />
                     );
                 }
@@ -430,6 +549,9 @@ const App = () => {
                 nodeOrder={nodeOrder}
                 isSpacePressed={isSpacePressed}
                 viewMode={viewMode}
+                selectionBox={selectionBox}
+                onCanvasMouseDown={handleCanvasMouseDown}
+                icons={icons}
             />
         </div>
     );

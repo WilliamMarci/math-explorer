@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
-const Minimap = ({ nodes, links, transform, visible, labelType, library }) => {
+const Minimap = ({ nodes, links, transform, visible, labelType, library, settings }) => {
     const [size, setSize] = useState({ w: 240, h: 160 });
     const [isResizing, setIsResizing] = useState(false);
+
+    const isPixelMode = settings?.pixelMode;
 
     useEffect(() => {
         if (!isResizing) return;
@@ -47,7 +49,21 @@ const Minimap = ({ nodes, links, transform, visible, labelType, library }) => {
                 })}
                 {nodes.map(n => (
                     <g key={n.id}>
-                        <circle cx={mapX(n.x)} cy={mapY(n.y)} r={3} fill={n.color || '#94a3b8'} stroke="var(--text)" strokeOpacity="0.5" strokeWidth="0.5" />
+                        {isPixelMode ? (
+                            <rect 
+                                x={mapX(n.x) - 3} 
+                                y={mapY(n.y) - 3} 
+                                width={6} 
+                                height={6} 
+                                fill={n.color || '#94a3b8'} 
+                                stroke="var(--text)" 
+                                strokeOpacity="0.5" 
+                                strokeWidth="1" 
+                                shapeRendering="crispEdges"
+                            />
+                        ) : (
+                            <circle cx={mapX(n.x)} cy={mapY(n.y)} r={3} fill={n.color || '#94a3b8'} stroke="var(--text)" strokeOpacity="0.5" strokeWidth="0.5" />
+                        )}
                         {labelType && labelType !== 'none' && (
                             <text 
                                 x={mapX(n.x)} y={mapY(n.y) - 5} 
@@ -61,7 +77,20 @@ const Minimap = ({ nodes, links, transform, visible, labelType, library }) => {
                         )}
                     </g>
                 ))}
-                <rect x={mapX(viewX)} y={mapY(viewY)} width={viewportW * scale} height={viewportH * scale} className="minimap-viewport" style={{ stroke: 'var(--text)', strokeOpacity: 0.5, fill: 'none' }} />
+                <rect 
+                    x={mapX(viewX)} 
+                    y={mapY(viewY)} 
+                    width={viewportW * scale} 
+                    height={viewportH * scale} 
+                    className="minimap-viewport" 
+                    style={{ 
+                        stroke: 'var(--text)', 
+                        strokeOpacity: 0.5, 
+                        fill: 'none',
+                        shapeRendering: isPixelMode ? 'crispEdges' : 'auto',
+                        strokeWidth: isPixelMode ? 2 : 1
+                    }} 
+                />
             </svg>
             <div className="minimap-resize-handle" onMouseDown={handleMouseDown} title="Drag to resize" />
         </div>
