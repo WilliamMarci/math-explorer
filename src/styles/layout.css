@@ -3,7 +3,7 @@
    ========================================================================== */
 .minimap-container {
     position: fixed;
-    top: 24px; right: 24px;
+    top: auto; bottom: 24px; right: 24px;
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -17,10 +17,10 @@
 }
 .minimap-resize-handle {
     position: absolute;
-    bottom: 0; left: 0;
+    top: 0; left: 0;
     width: 16px; height: 16px;
-    cursor: sw-resize;
-    background: linear-gradient(45deg, transparent 50%, var(--border) 50%);
+    cursor: nw-resize;
+    background: linear-gradient(135deg, var(--border) 50%, transparent 50%);
     opacity: 0.5;
     transition: opacity 0.2s;
     z-index: 10;
@@ -95,6 +95,44 @@
 }
 
 .nav-panel { top: 24px; left: 24px; max-height: 80vh; }
+.nav-panel .panel-content-wrapper { overflow-y: hidden; }
+.nav-panel .flex-1 { overflow-y: auto; }
+
+/* Custom Scrollbar for Nav Panel */
+.nav-panel .flex-1::-webkit-scrollbar {
+    width: 6px;
+}
+.nav-panel .flex-1::-webkit-scrollbar-track {
+    background: transparent;
+}
+.nav-panel .flex-1::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+.nav-panel .flex-1::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+.library-panel { top: 24px; right: 24px; max-height: none; height: auto; }
+.library-panel.open { bottom: 24px; }
+.library-panel .panel-content-wrapper { overflow-y: hidden; }
+.library-panel .flex-1 { overflow-y: auto; }
+
+/* Custom Scrollbar for Library Panel */
+.library-panel .flex-1::-webkit-scrollbar {
+    width: 6px;
+}
+.library-panel .flex-1::-webkit-scrollbar-track {
+    background: transparent;
+}
+.library-panel .flex-1::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+.library-panel .flex-1::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
 .control-panel { bottom: 24px; left: 24px; }
 
 .ui-header { 

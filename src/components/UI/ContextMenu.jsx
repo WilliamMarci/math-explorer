@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import Icon from './Icon';
+import { useMenuPosition } from '../../hooks/useMenuPosition';
 
 const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lang = 'en', selectedCount = 0, settings, icons }) => {
     const menuRef = useRef(null);
     const isPixelMode = settings?.pixelMode;
+    const position = useMenuPosition(menuRef, visible, x, y);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -70,35 +72,12 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
     // Adjust position to not overflow screen
     const style = {
         position: 'fixed', // Ensure fixed positioning relative to viewport
-        zIndex: 9999 // Ensure it's on top
+        zIndex: 9999, // Ensure it's on top
+        top: position.top,
+        left: position.left
     };
     
-    // Smart boundary detection
-    if (typeof window !== 'undefined') {
-        const estimatedWidth = 200;
-        const estimatedHeight = 300;
-        
-        // Horizontal: if close to right edge, align right to x
-        if (x + estimatedWidth > window.innerWidth) {
-            style.left = 'auto';
-            style.right = window.innerWidth - x;
-        } else {
-            style.left = x;
-            style.right = 'auto';
-        }
-
-        // Vertical: if close to bottom edge, align bottom to y
-        if (y + estimatedHeight > window.innerHeight) {
-            style.top = 'auto';
-            style.bottom = window.innerHeight - y;
-        } else {
-            style.top = y;
-            style.bottom = 'auto';
-        }
-    } else {
-        style.top = y;
-        style.left = x;
-    }
+    // Smart boundary detection removed here as it is handled in useEffect
 
     return (
         <div 

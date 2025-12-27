@@ -1,5 +1,5 @@
 import React from 'react';
-import { COLORS } from '../theme';
+import { COLORS } from '../../theme';
 
 const ColorPalette = ({ selectedColor, onSelect, size = 'md' }) => (
     <div className="flex gap-1.5 flex-wrap content-start">

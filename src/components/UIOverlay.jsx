@@ -1,6 +1,7 @@
 import React from 'react';
-import Minimap from './Minimap';
-import Explorer from './Explorer';
+import Minimap from './Panels/Minimap';
+import Explorer from './Panels/Explorer';
+import LibraryPanel from './Panels/LibraryPanel';
 import ControlPanel from './ControlPanel';
 
 const UIOverlay = ({ 
@@ -9,6 +10,8 @@ const UIOverlay = ({
     onAddNode, onExport, onImport, 
     onTogglePin, onEditNode, onDeleteNode, 
     onToggleVisibility, onFocusNode, onAutoArrange, 
+    onSpawnNode, onImportLibrary, onExportLibrary,
+    onUpdateItem, onDeleteItem,
     I18N, 
     nodeOrder, setNodeOrder, 
     viewMode, setViewMode, 
@@ -53,6 +56,19 @@ const UIOverlay = ({
                 setSelectedNodeIds={setSelectedNodeIds}
                 settings={settings}
                 icons={icons}
+            />
+
+            <LibraryPanel 
+                library={library}
+                onImportLibrary={onImportLibrary}
+                onExportLibrary={onExportLibrary}
+                onUpdateItem={onUpdateItem}
+                onDeleteItem={onDeleteItem}
+                t={t}
+                hoverClass={hoverClass}
+                settings={settings}
+                icons={icons}
+                I18N={I18N}
             />
 
             <ControlPanel 

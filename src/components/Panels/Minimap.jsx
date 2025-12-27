@@ -10,7 +10,7 @@ const Minimap = ({ nodes, links, transform, visible, labelType, library, setting
         if (!isResizing) return;
         const handleMouseMove = (e) => {
             const newW = Math.max(150, size.w - e.movementX); 
-            const newH = Math.max(100, size.h + e.movementY); 
+            const newH = Math.max(100, size.h - e.movementY); 
             setSize({ w: newW, h: newH });
         };
         const handleMouseUp = () => setIsResizing(false);

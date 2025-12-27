@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { COLORS } from '../theme';
 import { InteractiveMath, RichViewer } from './Common';
-import Icon from './Icon';
+import Icon from './UI/Icon';
 
 const getTypeName = (type, lang, I18N) => {
     return I18N[lang]?.types[type] || type;

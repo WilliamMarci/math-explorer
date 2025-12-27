@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import SettingsPanel from './Settings/SettingsPanel';
-import Icon from './Icon';
+import SettingsPanel from './Panels/SettingsPanel';
+import Icon from './UI/Icon';
 
 const ControlPanel = ({ settings, setSettings, shortcuts, setShortcuts, t, onExport, onImport, icons }) => {
     const [ctrlOpen, setCtrlOpen] = useState(false);

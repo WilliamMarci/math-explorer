@@ -17,52 +17,22 @@ export const useContextMenuActions = ({
     setExpandedState,
     transform,
     actions, // from useGraphActions
-    selectedNodeIds = []
+    selectedNodeIds = [],
+    onRequestDelete // New callback for delete request
 }) => {
-    const { spawnNode, deleteNode, toggleVisibility } = actions;
+    const { spawnNode, deleteNode, toggleVisibility, alignNodes } = actions;
 
     const handleContextAction = useCallback((action) => {
         const { x, y, targetId } = contextMenu;
         setContextMenu(prev => ({ ...prev, visible: false }));
 
-        // Helper for alignment
-        const getSelectedNodes = () => {
-            // If we have a selection, use it.
-            // If targetId is in selection, use selection.
-            // If targetId is NOT in selection, use just targetId (but alignment needs >1).
-            // Actually, if we right click a node that is NOT in selection, usually selection clears or changes to that node.
-            // But here we assume if we see alignment options, we have >1 selected.
-            return graphData.current.nodes.filter(n => selectedNodeIds.includes(n.id));
-        };
-
-        const alignNodes = (axis, type) => {
-            const nodes = getSelectedNodes();
-            if (nodes.length < 2) return;
-
-            let value;
-            if (axis === 'x') {
-                if (type === 'min') value = Math.min(...nodes.map(n => n.x));
-                else if (type === 'max') value = Math.max(...nodes.map(n => n.x));
-                else if (type === 'center') value = nodes.reduce((sum, n) => sum + n.x, 0) / nodes.length;
-                
-                nodes.forEach(n => { n.fx = value; n.x = value; });
-            } else {
-                if (type === 'min') value = Math.min(...nodes.map(n => n.y));
-                else if (type === 'max') value = Math.max(...nodes.map(n => n.y));
-                else if (type === 'center') value = nodes.reduce((sum, n) => sum + n.y, 0) / nodes.length;
-                
-                nodes.forEach(n => { n.fy = value; n.y = value; });
-            }
-            updateSimulation();
-        };
-
         switch (action) {
-            case 'align_left': alignNodes('x', 'min'); break;
-            case 'align_right': alignNodes('x', 'max'); break;
-            case 'align_top': alignNodes('y', 'min'); break;
-            case 'align_bottom': alignNodes('y', 'max'); break;
-            case 'align_center_h': alignNodes('x', 'center'); break;
-            case 'align_center_v': alignNodes('y', 'center'); break;
+            case 'align_left': alignNodes(selectedNodeIds, 'left'); break;
+            case 'align_right': alignNodes(selectedNodeIds, 'right'); break;
+            case 'align_top': alignNodes(selectedNodeIds, 'top'); break;
+            case 'align_bottom': alignNodes(selectedNodeIds, 'bottom'); break;
+            case 'align_center_h': alignNodes(selectedNodeIds, 'center_h'); break;
+            case 'align_center_v': alignNodes(selectedNodeIds, 'center_v'); break;
 
             case 'new':
                 // Create new node at mouse position if available, else center
@@ -137,24 +107,23 @@ export const useContextMenuActions = ({
                 }
                 break;
             case 'collapse':
-                if (confirm("Collapse all to root nodes?")) {
-                    // Keep nodes that have NO incoming links (roots)
-                    const rootNodes = graphData.current.nodes.filter(n => {
-                        const incoming = graphData.current.links.some(l => {
-                            const t = typeof l.target === 'object' ? l.target.id : l.target;
-                            return t === n.id;
-                        });
-                        return !incoming;
+                // Collapse all to root nodes?
+                // Keep nodes that have NO incoming links (roots)
+                const rootNodes = graphData.current.nodes.filter(n => {
+                    const incoming = graphData.current.links.some(l => {
+                        const t = typeof l.target === 'object' ? l.target.id : l.target;
+                        return t === n.id;
                     });
-                    
-                    // Fallback if circular or something
-                    const safeNodes = rootNodes.length > 0 ? rootNodes : [graphData.current.nodes[0]];
-                    
-                    graphData.current.nodes = safeNodes;
-                    graphData.current.links = [];
-                    setExpandedState({});
-                    updateSimulation();
-                }
+                    return !incoming;
+                });
+                
+                // Fallback if circular or something
+                const safeNodes = rootNodes.length > 0 ? rootNodes : [graphData.current.nodes[0]];
+                
+                graphData.current.nodes = safeNodes;
+                graphData.current.links = [];
+                setExpandedState({});
+                updateSimulation();
                 break;
             case 'copy':
                 if (targetId) {
@@ -197,11 +166,15 @@ export const useContextMenuActions = ({
                 }
                 break;
             case 'delete':
-                if (targetId) deleteNode(targetId);
+                if (onRequestDelete) {
+                    onRequestDelete(targetId);
+                } else if (targetId) {
+                    deleteNode(targetId);
+                }
                 break;
             default: break;
         }
-    }, [contextMenu, setContextMenu, graphData, library, setLibrary, clipboard, setClipboard, setEditingNodeId, updateSimulation, svgRef, zoomBehavior, expandedState, setExpandedState, transform, spawnNode, deleteNode, toggleVisibility, selectedNodeIds]);
+    }, [contextMenu, setContextMenu, graphData, library, setLibrary, clipboard, setClipboard, setEditingNodeId, updateSimulation, svgRef, zoomBehavior, expandedState, setExpandedState, transform, spawnNode, deleteNode, toggleVisibility, selectedNodeIds, onRequestDelete]);
 
     return handleContextAction;
 };

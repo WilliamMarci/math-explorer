@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { THEME_PRESETS } from '../../theme';
-import Icon from '../Icon';
+import Icon from '../UI/Icon';
 
 const GeneralSettings = ({ settings, setSettings, t, icons }) => {
     const languages = [

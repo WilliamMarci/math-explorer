@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Icon from './Icon';
+import Icon from '../UI/Icon';
 
 const ExportModal = ({ isOpen, onClose, onConfirm, defaultName = "scene", lang = 'en', settings, icons }) => {
     const [fileName, setFileName] = useState(defaultName);
@@ -63,6 +63,7 @@ const ExportModal = ({ isOpen, onClose, onConfirm, defaultName = "scene", lang =
                         <option value="json">MathMap (JSON)</option>
                         <option value="png">Image (PNG)</option>
                         <option value="svg">Vector (SVG)</option>
+                        <option value="pdf">Document (PDF)</option>
                     </select>
                 </div>
 

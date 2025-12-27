@@ -3,7 +3,7 @@ import GeneralSettings from './GeneralSettings';
 import PhysicsSettings from './PhysicsSettings';
 import AppearanceSettings from './AppearanceSettings';
 import ShortcutsSettings from './ShortcutsSettings';
-import Icon from '../Icon';
+import Icon from '../UI/Icon';
 
 const SettingsPanel = ({ settings, setSettings, shortcuts, setShortcuts, t, onExport, onImport, icons }) => {
     const [activeTab, setActiveTab] = useState('general');

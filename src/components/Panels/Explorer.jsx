@@ -1,6 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import Icon from './Icon';
+import Icon from '../UI/Icon';
+import { usePanelResize } from '../../hooks/usePanelResize';
+import { useMenuPosition } from '../../hooks/useMenuPosition';
+import ConfirmModal from '../Modals/ConfirmModal';
 
 const GraphSidebar = React.memo(({ items, links, nodes, rowHeight = 32 }) => {
     const nodeIndexMap = useMemo(() => { const map = new Map(); items.forEach((item, index) => map.set(item.cId, index)); return map; }, [items]);
@@ -80,9 +83,12 @@ const Explorer = ({
     const [contextMenu, setContextMenu] = useState(null);
     const [showNewNodeMenu, setShowNewNodeMenu] = useState(false);
     const [lastCreatedType, setLastCreatedType] = useState('default');
+    const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, title: '', position: null });
     const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
     const newNodeMenuRef = useRef(null);
     const portalMenuRef = useRef(null);
+    const panelRef = useRef(null);
+    const { width: panelWidth, handleMouseDown: handleMouseDownResize } = usePanelResize(256, 160, 600, 'right');
 
     const isPixelMode = settings?.pixelMode;
 
@@ -292,8 +298,12 @@ const Explorer = ({
         note: 'bg-gray-400'
     };
 
-    const ExplorerContextMenu = ({ x, y, item, onClose }) => (
-        <div className="explorer-context-menu fixed bg-[var(--panel-bg)] text-[var(--text)] border border-[var(--border)] shadow-lg rounded py-1 z-[10000] min-w-[120px]" style={{ top: y, left: x }}>
+    const ExplorerContextMenu = ({ x, y, item, onClose }) => {
+        const menuRef = useRef(null);
+        const position = useMenuPosition(menuRef, true, x, y);
+        
+        return (
+        <div ref={menuRef} className="explorer-context-menu fixed bg-[var(--panel-bg)] text-[var(--text)] border border-[var(--border)] shadow-lg rounded py-1 z-[10000] min-w-[120px]" style={{ top: position.top, left: position.left }}>
             {item && item.activeNode ? (
                 <>
                     <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onFocusNode(item.activeNode); onClose(); }}>
@@ -309,7 +319,15 @@ const Explorer = ({
                         <Icon icon={icons?.hide} /> {t.hide}
                     </div>
                     <div className="h-px bg-[var(--border)] my-1"></div>
-                    <div className="px-4 py-2 text-xs cursor-pointer text-red-500 hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onDeleteNode(item.activeNode.id); onClose(); }}>
+                    <div className="px-4 py-2 text-xs cursor-pointer text-red-500 hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { 
+                        setDeleteModal({
+                            isOpen: true,
+                            id: item.activeNode.id,
+                            title: item.content.title,
+                            position: { x, y }
+                        });
+                        onClose(); 
+                    }}>
                         <Icon icon={icons?.delete} /> {t.delete}
                     </div>
                 </>
@@ -326,13 +344,34 @@ const Explorer = ({
                 </div>
             )}
         </div>
-    );
+        );
+    };
 
     return (
         <>
             {contextMenu && <ExplorerContextMenu {...contextMenu} onClose={() => setContextMenu(null)} />}
             
-            <div className={`ui-panel nav-panel ${navOpen ? 'w-64 h-[80vh] open' : 'w-10 h-10'} bg-[var(--panel-bg)] border-r border-[var(--border)] text-[var(--text)]`}>
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                onConfirm={() => onDeleteNode(deleteModal.id)}
+                title={t.delete || "Delete"}
+                message={`Are you sure you want to delete "${deleteModal.title}"?`}
+                icons={icons}
+                position={deleteModal.position}
+            />
+
+            <div 
+                ref={panelRef}
+                className={`ui-panel nav-panel ${navOpen ? 'h-[80vh] open' : 'w-10 h-10'} bg-[var(--panel-bg)] border-r border-[var(--border)] text-[var(--text)]`}
+                style={{ width: navOpen ? panelWidth : 40 }}
+            >
+                {navOpen && (
+                    <div 
+                        className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-[var(--accent)] z-10 transition-colors"
+                        onMouseDown={handleMouseDownResize}
+                    ></div>
+                )}
                 <div className={`ui-header border-b border-[var(--border)] flex justify-between items-center ${!navOpen ? 'p-0 justify-center' : 'pr-2'} ${!navOpen && viewMode ? 'bg-[var(--accent)] text-white' : 'bg-[var(--panel-bg)]'}`}>
                     <div className={`flex items-center gap-2 cursor-pointer transition-colors h-full ${!navOpen ? 'justify-center w-full' : ''}`} onClick={() => setNavOpen(!navOpen)}>
                         <Icon icon={icons?.explorer} className="text-lg" /> {navOpen && t.explorer}

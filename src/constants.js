@@ -17,11 +17,14 @@ export const I18N = {
         pixelMode: "Pixel Mode", pixelFont: "Use Pixel Font", pixelMath: "Use Pixel Math", minimalMode: "Minimal Mode",
         expandAll: "Expand All", autoArrange: "Auto Arrange",
         focus: "Focus", pin: "Pin", unpin: "Unpin", hide: "Hide", show: "Show", edit: "Edit",
+        library: "Library", searchLibrary: "Search library...", importLibrary: "Import Library", exportLibrary: "Export Library",
+        folder: "Folder", tags: "Tags", moveToRoot: "Move to Root", editTemplate: "Edit Template", rename: "Rename",
+        align: "Align", alignLeft: "Left", alignRight: "Right", alignTop: "Top", alignBottom: "Bottom", alignCenterH: "Center H", alignCenterV: "Center V",
         shortcuts: { new: "New Node", refresh: "Refresh View", copy: "Copy", paste: "Paste", cut: "Cut", delete: "Delete", toggleViewMode: "Toggle View Mode" },
         types: { default: "Default", axiom: "Axiom", constant: "Constant", parameter: "Parameter", note: "Note" }
     },
     zh: {
-        explorer: "资源管理器", settings: "设置", newNode: "新建节点", sceneOutline: "场景大纲",
+        explorer: "导航", settings: "设置", newNode: "新建节点", sceneOutline: "场景大纲",
         theme: "主题", gravity: "斥力强度", centering: "引力强度", distance: "连线距离", showTooltips: "显示提示框",
         showMinimap: "显示小地图", PHYandLAY: "物理与布局",searchText: "搜索...",livePreview: "实时预览",
         language: "语言", export: "导出", import: "导入", editNode: "编辑节点内容",
@@ -36,6 +39,9 @@ export const I18N = {
         pixelMode: "像素模式", pixelFont: "使用像素字体", pixelMath: "使用像素数学", minimalMode: "极简模式",
         expandAll: "展开全部", autoArrange: "自动排列",
         focus: "聚焦", pin: "固定", unpin: "取消固定", hide: "隐藏", show: "显示", edit: "编辑",
+        library: "库", searchLibrary: "搜索库...", importLibrary: "导入库", exportLibrary: "导出库",
+        folder: "文件夹", tags: "标签", moveToRoot: "移动到根目录", editTemplate: "编辑模板", rename: "重命名",
+        align: "对齐", alignLeft: "左对齐", alignRight: "右对齐", alignTop: "顶对齐", alignBottom: "底对齐", alignCenterH: "水平居中", alignCenterV: "垂直居中",
         shortcuts: { new: "新建节点", refresh: "刷新视图", copy: "复制", paste: "粘贴", cut: "剪切", delete: "删除", toggleViewMode: "切换视图模式" },
         types: { default: "默认", axiom: "公理", constant: "常数", parameter: "参数", note: "注释" }
     },
@@ -55,6 +61,9 @@ export const I18N = {
         pixelMode: "Mode Pixel", pixelFont: "Police Pixel", pixelMath: "Maths Pixel", minimalMode: "Mode Minimal",
         expandAll: "Tout développer", autoArrange: "Arrangement automatique",
         focus: "Focus", pin: "Épingler", unpin: "Désépingler", hide: "Masquer", show: "Afficher", edit: "Éditer",
+        library: "Bibliothèque", searchLibrary: "Rechercher...", importLibrary: "Importer", exportLibrary: "Exporter",
+        folder: "Dossier", tags: "Tags", moveToRoot: "Déplacer vers la racine", editTemplate: "Éditer le modèle", rename: "Renommer",
+        align: "Aligner", alignLeft: "Gauche", alignRight: "Droite", alignTop: "Haut", alignBottom: "Bas", alignCenterH: "Centre H", alignCenterV: "Centre V",
         shortcuts: { new: "Nouveau Nœud", refresh: "Actualiser", copy: "Copier", paste: "Coller", cut: "Couper", delete: "Supprimer", toggleViewMode: "Mode Vue" },
         types: { default: "Défaut", axiom: "Axiome", constant: "Constante", parameter: "Paramètre", note: "Note" }
     },
@@ -74,6 +83,9 @@ export const I18N = {
         pixelMode: "ピクセルモード", pixelFont: "ピクセルフォント", pixelMath: "ピクセル数式", minimalMode: "ミニマルモード",
         expandAll: "すべて展開", autoArrange: "自動配置",
         focus: "フォーカス", pin: "ピン留め", unpin: "ピン留め解除", hide: "隠す", show: "表示", edit: "編集",
+        library: "ライブラリ", searchLibrary: "検索...", importLibrary: "インポート", exportLibrary: "エクスポート",
+        folder: "フォルダ", tags: "タグ", moveToRoot: "ルートに移動", editTemplate: "テンプレートを編集", rename: "名前を変更",
+        align: "整列", alignLeft: "左揃え", alignRight: "右揃え", alignTop: "上揃え", alignBottom: "下揃え", alignCenterH: "水平中央", alignCenterV: "垂直中央",
         shortcuts: { new: "新しいノード", refresh: "更新", copy: "コピー", paste: "貼り付け", cut: "切り取り", delete: "削除", toggleViewMode: "表示モード切替" },
         types: { default: "デフォルト", axiom: "公理", constant: "定数", parameter: "パラメータ", note: "ノート" }
     },

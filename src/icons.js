@@ -32,7 +32,13 @@ export const ICONS = {
     alignBottom: { type: 'font', value: 'ri-align-bottom' },
     alignCenterH: { type: 'font', value: 'ri-align-center' },
     alignCenterV: { type: 'font', value: 'ri-align-vertically' },
-    customize: { type: 'font', value: 'ri-settings-3-fill' }
+    customize: { type: 'font', value: 'ri-settings-3-fill' },
+    list: { type: 'font', value: 'ri-list-check' },
+    grid: { type: 'font', value: 'ri-grid-fill' },
+    menu: { type: 'font', value: 'ri-menu-line' },
+    folder: { type: 'font', value: 'ri-folder-line' },
+    file: { type: 'font', value: 'ri-file-line' },
+    code: { type: 'font', value: 'ri-code-line' }
 };
 
 export const PIXEL_ICONS = {
@@ -69,5 +75,11 @@ export const PIXEL_ICONS = {
     alignBottom: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
     alignCenterH: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
     alignCenterV: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
-    customize: { type: 'image', value: '/src/assets/svgs/pixel-settings.svg' }
+    customize: { type: 'image', value: '/src/assets/svgs/pixel-settings.svg' },
+    list: { type: 'image', value: '/src/assets/svgs/pixel-list.svg' },
+    grid: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
+    menu: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
+    folder: { type: 'image', value: '/src/assets/svgs/pixel-file.svg' },
+    file: { type: 'image', value: '/src/assets/svgs/pixel-file.svg' },
+    code: { type: 'image', value: '/src/assets/svgs/pixel-file.svg' }
 };

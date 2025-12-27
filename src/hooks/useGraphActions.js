@@ -73,32 +73,29 @@ export const useGraphActions = ({
     }, [graphData, updateSimulation, saveHistory]);
 
     const deleteNode = useCallback((nodeId) => {
-        if (confirm("Delete this node?")) {
-            const node = graphData.current.nodes.find(n => n.id === nodeId);
-            const contentId = node ? node.contentId : null;
+        const node = graphData.current.nodes.find(n => n.id === nodeId);
+        const contentId = node ? node.contentId : null;
+        
+        graphData.current.nodes = graphData.current.nodes.filter(n => n.id !== nodeId);
+        graphData.current.links = graphData.current.links.filter(l => (l.source.id || l.source) !== nodeId && (l.target.id || l.target) !== nodeId);
+        updateSimulation();
+        if (setEditingNodeId) setEditingNodeId(null);
+        
+        // Remove from nodeOrder if present
+        if (contentId) {
+            // Remove ALL nodes with this contentId to prevent ghosts
+            graphData.current.nodes = graphData.current.nodes.filter(n => n.contentId !== contentId);
             
-            graphData.current.nodes = graphData.current.nodes.filter(n => n.id !== nodeId);
-            graphData.current.links = graphData.current.links.filter(l => (l.source.id || l.source) !== nodeId && (l.target.id || l.target) !== nodeId);
-            updateSimulation();
-            if (setEditingNodeId) setEditingNodeId(null);
-            
-            // Remove from nodeOrder if present
-            if (contentId) {
-                // Remove ALL nodes with this contentId to prevent ghosts
-                graphData.current.nodes = graphData.current.nodes.filter(n => n.contentId !== contentId);
-                
-                setNodeOrder(prev => prev.filter(cid => cid !== contentId));
-                // Remove from library to remove from explorer
-                setLibrary(prev => {
-                    const next = { ...prev };
-                    delete next[contentId];
-                    return next;
-                });
-            }
-            if (saveHistory) setTimeout(saveHistory, 50);
-            return true;
+            setNodeOrder(prev => prev.filter(cid => cid !== contentId));
+            // Remove from library to remove from explorer
+            setLibrary(prev => {
+                const next = { ...prev };
+                delete next[contentId];
+                return next;
+            });
         }
-        return false;
+        if (saveHistory) setTimeout(saveHistory, 50);
+        return true;
     }, [graphData, updateSimulation, setEditingNodeId, setNodeOrder, setLibrary, saveHistory]);
 
     const toggleVisibility = useCallback((contentId, transform) => {
@@ -386,12 +383,57 @@ export const useGraphActions = ({
         if (saveHistory) setTimeout(saveHistory, 50);
     }, [graphData, setLibrary, setNodes, setEditingNodeId, saveHistory]);
 
+    const alignNodes = useCallback((nodeIds, type) => {
+        if (nodeIds.length < 2) return;
+        
+        const selectedNodes = graphData.current.nodes.filter(n => nodeIds.includes(n.id));
+        if (selectedNodes.length < 2) return;
+
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        let sumX = 0, sumY = 0;
+
+        selectedNodes.forEach(n => {
+            if (n.x < minX) minX = n.x;
+            if (n.x > maxX) maxX = n.x;
+            if (n.y < minY) minY = n.y;
+            if (n.y > maxY) maxY = n.y;
+            sumX += n.x;
+            sumY += n.y;
+        });
+
+        const avgX = sumX / selectedNodes.length;
+        const avgY = sumY / selectedNodes.length;
+
+        selectedNodes.forEach(n => {
+            // Pin them so they stay aligned
+            n.fx = n.x;
+            n.fy = n.y;
+
+            switch (type) {
+                case 'left': n.fx = minX; break;
+                case 'right': n.fx = maxX; break;
+                case 'top': n.fy = minY; break;
+                case 'bottom': n.fy = maxY; break;
+                case 'center_h': n.fx = avgX; break;
+                case 'center_v': n.fy = avgY; break;
+            }
+            
+            // Update current position too for immediate visual feedback
+            n.x = n.fx;
+            n.y = n.fy;
+        });
+
+        updateSimulation();
+        if (saveHistory) setTimeout(saveHistory, 50);
+    }, [graphData, updateSimulation, saveHistory]);
+
     return {
         addNode,
         spawnNode,
         deleteNode,
         toggleVisibility,
         handleToggle,
-        handleSaveNode
+        handleSaveNode,
+        alignNodes
     };
 };

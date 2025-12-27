@@ -1,28 +1,30 @@
 import React, { useState, useMemo } from 'react';
-import { COLORS, NODE_TYPES } from '../theme';
-import { InteractiveMath, RichViewer } from './Common';
-import ColorPalette from './ColorPalette';
-import SegmentList from './SegmentList';
-import Icon from './Icon';
+import { COLORS, NODE_TYPES } from '../../theme';
+import { InteractiveMath, RichViewer } from '../Common';
+import ColorPalette from '../UI/ColorPalette';
+import SegmentList from '../UI/SegmentList';
+import Icon from '../UI/Icon';
+import { usePanelResize } from '../../hooks/usePanelResize';
 
-const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingIds, I18N, settings, icons }) => {
+const NodeTemplateEditor = ({ content, cId, onClose, onSave, onDelete, lang, I18N, settings, icons }) => {
     const t = I18N[lang];
-    const [contentId, setContentId] = useState(node.contentId);
     const isPixelMode = settings?.pixelMode;
+    const { width, handleMouseDown } = usePanelResize(900, 600, 1400, 'right');
     
     const [data, setData] = useState({
         title: content.title || "", 
         type: content.type || "default", 
         template: content.template || "", 
         note: content.note || "",
+        tags: content.tags || [],
+        folder: content.folder || "",
+        color: content.color || COLORS[0], // Template color
         segments: Object.entries(content.segments || {}).map(([key, val]) => ({ 
             key, 
             ...val,
-            // 自动检测是否展开
             _connSettingsOpen: !!(val.connectionLabel || val.connectionStyle || val.connectionDash || val.connectionMarker)
         }))
     });
-    const [color, setColor] = useState(node.color || COLORS[0]);
 
     const previewSegments = useMemo(() => {
         return data.segments.reduce((acc, seg) => {
@@ -32,9 +34,6 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
     }, [data.segments]);
 
     const handleSave = () => {
-        if (!/^[a-zA-Z0-9_]+$/.test(contentId)) { alert("ID must contain only letters, numbers, and underscores."); return; }
-        if (contentId !== node.contentId && existingIds.includes(contentId)) { alert("ID already exists."); return; }
-        
         const segObj = {};
         const seenKeys = new Set();
         for (const s of data.segments) {
@@ -53,11 +52,9 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
                 delete rest.connectionDash;
                 delete rest.connectionMarker;
             }
-            // -------------------------------------------
-
             segObj[key] = rest; 
         }
-        onSave(node.id, contentId, { ...data, segments: segObj }, color);
+        onSave(cId, { ...data, segments: segObj });
     };
 
     const updateSegment = (idx, field, val) => {
@@ -77,14 +74,19 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div 
-                className="editor-modal flex flex-col max-h-[90vh] w-[900px] rounded-xl overflow-hidden shadow-2xl border border-[var(--border)]" 
+                className="editor-modal flex flex-col max-h-[90vh] rounded-xl overflow-hidden shadow-2xl border border-[var(--border)] relative" 
                 onClick={e => e.stopPropagation()}
-                style={{ backgroundColor: 'var(--panel-bg)', color: 'var(--text)' }}
+                style={{ backgroundColor: 'var(--panel-bg)', color: 'var(--text)', width }}
             >
+                <div 
+                    className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-[var(--accent)] z-10 transition-colors"
+                    onMouseDown={handleMouseDown}
+                ></div>
+
                 {/* Header */}
                 <div className="px-6 py-4 flex justify-between items-center shrink-0 border-b border-[var(--border)]" style={{ backgroundColor: 'var(--panel-bg)' }}>
                     <h3 className="text-lg font-bold flex items-center gap-2 select-none text-[var(--text)]">
-                        <Icon icon={icons?.editCircle} className="text-[var(--accent)]" /> {t.editNode}
+                        <Icon icon={icons?.editCircle} className="text-[var(--accent)]" /> {t.editTemplate || "Edit Template"}
                     </h3>
                     <button onClick={onClose} className="text-[var(--muted)] hover:text-red-500 transition-colors">
                         <Icon icon={icons?.close} className="text-2xl" />
@@ -104,16 +106,20 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
                         
                         <div className="absolute top-2 left-3 text-[10px] font-bold text-[var(--text)] opacity-30 uppercase tracking-widest pointer-events-none">{t.livePreview}</div>
                         
-                        <div className={`math-card node-type-${data.type} z-10 shadow-lg`} style={{ '--node-color': color, transform: 'scale(1)' }}>
+                        <div className={`math-card node-type-${data.type} z-10 shadow-lg`} style={{ '--node-color': data.color, transform: 'scale(1)' }}>
                             <div className="node-header">
                                 {data.type !== 'default' && data.type !== 'note' && (
-                                    <span className="type-badge" style={{ backgroundColor: color }}>{I18N[lang]?.types[data.type] || data.type}</span>
+                                    <span className="type-badge" style={{ backgroundColor: data.color }}>{I18N[lang]?.types[data.type] || data.type}</span>
                                 )}
                                 <RichViewer content={data.title || "Untitled"} className="node-title" inline={true} />
                             </div>
                             <div className="node-body">
                                 {data.type !== 'note' && <InteractiveMath template={data.template} segments={previewSegments} nodeId="preview" onToggle={() => {}} onHover={() => {}} />}
-                                {data.note && <RichViewer content={data.note} type="markdown" />}
+                                {data.note && (
+                                    <div className="node-note">
+                                        <RichViewer content={data.note} type="markdown" className="text-[var(--text)]" />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -128,11 +134,23 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
                             </div>
 
                             <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.folder || "Folder"}</label>
+                                    <input className={inputClass} value={data.folder} onChange={e => setData({...data, folder: e.target.value})} placeholder="e.g. Math/Algebra" />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.tags || "Tags"}</label>
+                                    <input 
+                                        className={inputClass} 
+                                        value={data.tags.join(', ')} 
+                                        onChange={e => setData({...data, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} 
+                                        placeholder="tag1, tag2" 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
                                 <div className="flex-1 flex flex-col gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.id}</label>
-                                        <input className={`${inputClass} font-mono font-bold !text-[var(--accent)]`} value={contentId} onChange={e => setContentId(e.target.value)} />
-                                    </div>
                                     <div>
                                         <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.type}</label>
                                         <select className={inputClass} value={data.type} onChange={e => setData({...data, type: e.target.value})}>
@@ -144,7 +162,7 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
                                 <div className="w-36 flex flex-col">
                                     <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.color}</label>
                                     <div className="flex-1 p-3 rounded border border-[var(--border)] bg-[var(--input-bg)]">
-                                        <ColorPalette selectedColor={color} onSelect={setColor} size="sm" />
+                                        <ColorPalette selectedColor={data.color} onSelect={c => setData({...data, color: c})} size="sm" />
                                     </div>
                                 </div>
                             </div>
@@ -181,7 +199,7 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
 
                 {/* Footer */}
                 <div className="px-6 py-4 flex justify-between items-center shrink-0 border-t border-[var(--border)]" style={{ backgroundColor: 'var(--panel-bg)' }}>
-                    <button className="btn bg-transparent text-red-500 border border-red-500 hover:bg-red-500 hover:text-white transition-colors" onClick={() => onDelete(node.id)}>{t.delete}</button>
+                    <button className="btn bg-transparent text-red-500 border border-red-500 hover:bg-red-500 hover:text-white transition-colors" onClick={() => onDelete(cId)}>{t.delete}</button>
                     <div className="flex gap-3">
                         <button className="btn bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text)] hover:brightness-95" onClick={onClose}>{t.cancel}</button>
                         <button className="btn btn-primary bg-[var(--accent)] text-white border-none hover:brightness-110" onClick={handleSave}>{t.save}</button>
@@ -192,4 +210,4 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
     );
 };
 
-export default NodeEditor;
+export default NodeTemplateEditor;

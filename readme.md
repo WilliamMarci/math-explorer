@@ -88,10 +88,10 @@ v = \frac{d {{pos}} }{d {{time}} }
 ## TODO
 
 - [x] add pixel theme 
-- [ ] update "minimal" style, only show formula with a simple border, the title and note are hidden by default, only show when hover. we need the node line connect formular interactive math elements with same key and next node border with a solid line.
+- [x] update "minimal" style, only show formula with a simple border, the title and note are hidden by default, only show when hover. we need the node line connect formular interactive math elements with same key and next node border with a solid line.
+- [ ] add node libary management panel (at right side). for now, node can has new properties: tags (array of string). we can filter node in library panel by tags. and also we can create node folder in library panel to organize node better. node library can be search by title/content/tags. and also we can drag node from library panel to canvas to create new node, or drag node in libaray. this library can be load/save to a mathmap file, which metadata show that is a library file. and we can import/export library file to share node library with other user. all this need UI design. 
 - [ ] muilt select nodes and drag to move, and give right click menu to align nodes (left, right, top, bottom, center), and also add muilt select options in the node panel (explorer, library)
-- [ ] auto save and setting history version
-- [ ] add node libary management panel
+- [ ] auto save and keep setting history
 - [ ] add do/undo functionality
 - [ ] add export to png/svg/pdf
 - [ ] build as electron app
@@ -112,3 +112,11 @@ v = \frac{d {{pos}} }{d {{time}} }
    need calculate), and a link color hover box on it (if this node link to a sub mathnode) so 
    while minimal mode, this link line should above node ( when cursor not above) 3. all this can 
    modify in setting panel
+
+
+   -------
+   name           | formular
+   tags           | Formular (fade out()
+   discription  (just show start, fade out)  | formular
+   -----
+

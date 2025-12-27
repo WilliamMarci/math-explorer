@@ -3,12 +3,13 @@ import * as d3 from 'd3';
 import 'katex/dist/katex.min.css';
 
 import { THEME_PRESETS, COLORS } from './theme';
-import NodeEditor from './components/NodeEditor';
+import NodeEditor from './components/Modals/NodeEditor';
 import UIOverlay from './components/UIOverlay';
-import ExportModal from './components/ExportModal';
-import ContextMenu from './components/ContextMenu';
+import ExportModal from './components/Modals/ExportModal';
+import ContextMenu from './components/UI/ContextMenu';
 import { RichViewer } from './components/Common';
 import Canvas from './components/Canvas';
+import ConfirmModal from './components/Modals/ConfirmModal';
 
 import { I18N } from './constants';
 import { ICONS, PIXEL_ICONS } from './icons';
@@ -44,6 +45,8 @@ const App = () => {
     const [clipboard, setClipboard] = useState(null);
     const [nodeOrder, setNodeOrder] = useState([]);
     const [selectedNodeIds, setSelectedNodeIds] = useState([]);
+    const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '' });
+    const [canvasDeleteModal, setCanvasDeleteModal] = useState({ isOpen: false, ids: [] });
     const isSpacePressed = useRef(false);
     
     const [viewMode, setViewMode] = useState(false);
@@ -60,18 +63,25 @@ const App = () => {
         'toggleViewMode': 'e'
     });
 
-    const [settings, setSettings] = useState({ 
-        theme: 'auto', gravity: 400, centering: 10, distance: 350, 
-        showTooltips: true, showMinimap: true, lang: 'en',
-        showEdgeLabels: true, edgeLabelMode: 'side', edgeLabelBg: 'none',
-        minimalMode: false,
-        segmentHighlights: true,
-        minimalGapRatio: 0.5,
-        collisionPadding: 10,
-        pixelMode: false,
-        pixelFont: true,
-        pixelMath: true
+    const [settings, setSettings] = useState(() => {
+        const saved = localStorage.getItem('mathmap_settings');
+        return saved ? JSON.parse(saved) : { 
+            theme: 'auto', gravity: 400, centering: 10, distance: 350, 
+            showTooltips: true, showMinimap: true, lang: 'en',
+            showEdgeLabels: true, edgeLabelMode: 'side', edgeLabelBg: 'none',
+            minimalMode: false,
+            segmentHighlights: true,
+            minimalGapRatio: 0.5,
+            collisionPadding: 10,
+            pixelMode: false,
+            pixelFont: true,
+            pixelMath: true
+        };
     });
+    
+    useEffect(() => {
+        localStorage.setItem('mathmap_settings', JSON.stringify(settings));
+    }, [settings]);
     
     const icons = settings.pixelMode ? PIXEL_ICONS : ICONS;
     
@@ -181,7 +191,15 @@ const App = () => {
         saveHistory
     });
 
-    const { addNode, deleteNode, toggleVisibility, handleToggle, handleSaveNode } = actions;
+    const { addNode, deleteNode, toggleVisibility, handleToggle, handleSaveNode, spawnNode } = actions;
+
+    const handleRequestDeleteNode = useCallback((nodeId) => {
+        if (selectedNodeIds.length > 0) {
+            setCanvasDeleteModal({ isOpen: true, ids: selectedNodeIds });
+        } else if (nodeId) {
+            setCanvasDeleteModal({ isOpen: true, ids: [nodeId] });
+        }
+    }, [selectedNodeIds]);
 
     const handleContextAction = useContextMenuActions({
         contextMenu,
@@ -199,8 +217,104 @@ const App = () => {
         setExpandedState,
         transform,
         actions,
-        selectedNodeIds
+        selectedNodeIds,
+        onRequestDelete: handleRequestDeleteNode
     });
+
+    const handleContextActionWrapper = (action) => {
+        if (action === 'delete') {
+            const targetId = contextMenu.targetId;
+            if (selectedNodeIds.length > 0) {
+                setCanvasDeleteModal({ isOpen: true, ids: selectedNodeIds });
+            } else if (targetId) {
+                setCanvasDeleteModal({ isOpen: true, ids: [targetId] });
+            }
+            setContextMenu(prev => ({ ...prev, visible: false }));
+        } else if (action === 'collapse') {
+             // We can add a confirm modal for collapse too if needed, or just let it happen
+             // For now, let's just let it happen as per user request to remove system popups
+             handleContextAction(action);
+        } else {
+            handleContextAction(action);
+        }
+    };
+
+    // --- Library Actions ---
+    const handleImportLibrary = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.mathlib,.json';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (data.library) {
+                        setLibrary(prev => ({ ...prev, ...data.library }));
+                    } else {
+                        // Assume it's a raw library object
+                        setLibrary(prev => ({ ...prev, ...data }));
+                    }
+                } catch (err) { setAlertModal({ isOpen: true, title: "Error", message: "Invalid Library file" }); }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    };
+
+    const handleExportLibrary = () => {
+        const data = { 
+            meta: { type: 'mathmap-library', version: 1 },
+            library 
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});
+        const url = URL.createObjectURL(blob); 
+        const a = document.createElement('a'); 
+        a.href = url; a.download = 'library.mathlib'; a.click(); URL.revokeObjectURL(url);
+    };
+
+    const handleUpdateLibraryItem = (cId, updates) => {
+        setLibrary(prev => ({
+            ...prev,
+            [cId]: { ...prev[cId], ...updates }
+        }));
+    };
+
+    const handleDeleteLibraryItem = (cId) => {
+        setLibrary(prev => {
+            const next = { ...prev };
+            delete next[cId];
+            return next;
+        });
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        const contentId = e.dataTransfer.getData('application/mathmap-node');
+        if (contentId && library[contentId]) {
+            const rect = svgRef.current.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Clone content for new instance (Template behavior)
+            const newContentId = `topic_${Math.random().toString(36).substr(2, 9)}`;
+            const content = library[contentId];
+            const newContent = { ...content }; // Deep copy if needed, but shallow copy of content object is fine as we replace it
+            // Actually, segments might need deep copy if we modify them later? 
+            // For now, shallow copy of content structure is okay, but segments object should be new.
+            newContent.segments = JSON.parse(JSON.stringify(content.segments || {}));
+            
+            setLibrary(prev => ({ ...prev, [newContentId]: newContent }));
+            spawnNode(newContentId, x, y, transform);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    };
 
     // --- Effects ---
 
@@ -268,15 +382,12 @@ const App = () => {
                 }
             }
             
-            if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (e.key === 'Delete') {
                 if (editingNodeId) return; // Don't delete if editing text
                 if (selectedNodeIds.length > 0) {
-                    selectedNodeIds.forEach(id => deleteNode(id));
-                    setSelectedNodeIds([]);
-                    setFocusedNodeId(null);
+                    setCanvasDeleteModal({ isOpen: true, ids: selectedNodeIds });
                 } else if (focusedNodeId) {
-                    deleteNode(focusedNodeId);
-                    setFocusedNodeId(null);
+                    setCanvasDeleteModal({ isOpen: true, ids: [focusedNodeId] });
                 }
             }
         };
@@ -378,6 +489,48 @@ const App = () => {
             const url = URL.createObjectURL(blob); 
             const a = document.createElement('a'); 
             a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+        } else if (format === 'pdf') {
+            // PDF Export via Print
+            const svg = svgRef.current;
+            if (!svg) return;
+            
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) { setAlertModal({ isOpen: true, title: "Error", message: "Please allow popups to export PDF" }); return; }
+            
+            const clone = svg.cloneNode(true);
+            // Ensure it fits on page or scales
+            clone.style.width = "100%";
+            clone.style.height = "100%";
+            clone.style.position = "absolute";
+            clone.style.top = "0";
+            clone.style.left = "0";
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>${filename}</title>
+                    <style>
+                        @page { size: landscape; margin: 0; }
+                        body { margin: 0; padding: 0; overflow: hidden; }
+                        /* Include current theme colors if possible, or default to white bg */
+                        body { background-color: white; }
+                    </style>
+                </head>
+                <body>
+                    ${new XMLSerializer().serializeToString(clone)}
+                    <script>
+                        window.onload = () => {
+                            setTimeout(() => {
+                                window.print();
+                                window.close();
+                            }, 500);
+                        };
+                    </script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+
         } else if (format === 'svg' || format === 'png') {
             // Basic SVG/PNG Export using foreignObject
             // Note: This requires styles to be inline or available. 
@@ -460,7 +613,7 @@ const App = () => {
                     graphData.current.links = data.scene.links;
                     updateSimulation();
                 }
-            } catch (err) { alert("Invalid MathMap file"); }
+            } catch (err) { setAlertModal({ isOpen: true, title: "Error", message: "Invalid MathMap file" }); }
         };
         reader.readAsText(file);
     };
@@ -477,6 +630,10 @@ const App = () => {
                 onTogglePin={handlePinNode} onEditNode={setEditingNodeId} onDeleteNode={deleteNode}
                 onToggleVisibility={(id) => toggleVisibility(id, transform)} onFocusNode={handleFocusNode} 
                 onAutoArrange={() => simulationRef.current.alpha(1).restart()}
+                onImportLibrary={handleImportLibrary}
+                onExportLibrary={handleExportLibrary}
+                onUpdateItem={handleUpdateLibraryItem}
+                onDeleteItem={handleDeleteLibraryItem}
                 I18N={I18N}
                 nodeOrder={nodeOrder} setNodeOrder={setNodeOrder}
                 viewMode={viewMode} setViewMode={setViewMode}
@@ -493,10 +650,34 @@ const App = () => {
                 icons={icons}
             />
 
+            <ConfirmModal
+                isOpen={alertModal.isOpen}
+                onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+                onConfirm={() => setAlertModal({ ...alertModal, isOpen: false })}
+                title={alertModal.title}
+                message={alertModal.message}
+                icons={icons}
+                // Hide cancel button for alert style
+                isAlert={true}
+            />
+
+            <ConfirmModal
+                isOpen={canvasDeleteModal.isOpen}
+                onClose={() => setCanvasDeleteModal({ ...canvasDeleteModal, isOpen: false })}
+                onConfirm={() => {
+                    canvasDeleteModal.ids.forEach(id => deleteNode(id));
+                    setSelectedNodeIds([]);
+                    setFocusedNodeId(null);
+                }}
+                title={I18N[settings.lang].delete || "Delete"}
+                message={`Are you sure you want to delete ${canvasDeleteModal.ids.length} node(s)?`}
+                icons={icons}
+            />
+
             <ContextMenu 
                 visible={contextMenu.visible} x={contextMenu.x} y={contextMenu.y} 
                 type={contextMenu.type} targetId={contextMenu.targetId}
-                hasClipboard={!!clipboard} onAction={handleContextAction} 
+                hasClipboard={!!clipboard} onAction={handleContextActionWrapper} 
                 onClose={() => setContextMenu(prev => ({ ...prev, visible: false }))}
                 lang={settings.lang}
                 selectedCount={selectedNodeIds.length}
@@ -520,7 +701,7 @@ const App = () => {
                             node={node} 
                             content={content} 
                             onClose={() => setEditingNodeId(null)} 
-                            onSave={handleSaveNode} onDelete={deleteNode} 
+                            onSave={handleSaveNode} onDelete={handleRequestDeleteNode} 
                             lang={settings.lang} existingIds={Object.keys(library)} I18N={I18N} 
                             settings={settings}
                             icons={icons}
@@ -531,35 +712,41 @@ const App = () => {
             })()}
 
             {/* Canvas Container */}
-            <Canvas 
-                svgRef={svgRef}
-                transform={transform}
-                links={links}
-                nodes={nodes}
-                library={library}
-                onToggle={handleToggle}
-                onHover={(e, data) => setTooltip(data ? { x: e.clientX, y: e.clientY, data } : null)}
-                onDragStart={handleDragStart}
-                onEdit={setEditingNodeId}
-                editingNodeId={editingNodeId}
-                focusedNodeId={focusedNodeId}
-                selectedNodeIds={selectedNodeIds}
-                onSelectionChange={setSelectedNodeIds}
-                onPin={handlePinNode}
-                onContextMenu={handleNodeContextMenu}
-                lang={settings.lang}
-                I18N={I18N}
-                settings={settings}
-                nodeOrder={nodeOrder}
-                isSpacePressed={isSpacePressed}
-                viewMode={viewMode}
-                selectionBox={selectionBox}
-                onCanvasMouseDown={handleCanvasMouseDown}
-                hoveredNodeId={hoveredNodeId}
-                onNodeHover={setHoveredNodeId}
-                onFocusNode={handleFocusNode}
-                icons={icons}
-            />
+            <div 
+                className="absolute inset-0" 
+                onDrop={handleDrop} 
+                onDragOver={handleDragOver}
+            >
+                <Canvas 
+                    svgRef={svgRef}
+                    transform={transform}
+                    links={links}
+                    nodes={nodes}
+                    library={library}
+                    onToggle={handleToggle}
+                    onHover={(e, data) => setTooltip(data ? { x: e.clientX, y: e.clientY, data } : null)}
+                    onDragStart={handleDragStart}
+                    onEdit={setEditingNodeId}
+                    editingNodeId={editingNodeId}
+                    focusedNodeId={focusedNodeId}
+                    selectedNodeIds={selectedNodeIds}
+                    onSelectionChange={setSelectedNodeIds}
+                    onPin={handlePinNode}
+                    onContextMenu={handleNodeContextMenu}
+                    lang={settings.lang}
+                    I18N={I18N}
+                    settings={settings}
+                    nodeOrder={nodeOrder}
+                    isSpacePressed={isSpacePressed}
+                    viewMode={viewMode}
+                    selectionBox={selectionBox}
+                    onCanvasMouseDown={handleCanvasMouseDown}
+                    hoveredNodeId={hoveredNodeId}
+                    onNodeHover={setHoveredNodeId}
+                    onFocusNode={handleFocusNode}
+                    icons={icons}
+                />
+            </div>
         </div>
     );
 };
