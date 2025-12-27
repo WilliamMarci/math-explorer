@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from '../UI/Icon';
 
-const InputModal = ({ isOpen, onClose, onConfirm, title, initialValue, placeholder, icons, position }) => {
+const InputModal = ({ isOpen, onClose, onConfirm, title, initialValue, placeholder, icons, position, lang = 'en', I18N }) => {
     const [value, setValue] = useState(initialValue || '');
     const inputRef = useRef(null);
+
+    const t = (key) => I18N?.[lang]?.[key] || key;
+
 
     useEffect(() => {
         if (isOpen) {
@@ -46,10 +49,10 @@ const InputModal = ({ isOpen, onClose, onConfirm, title, initialValue, placehold
                 />
                 <div className="flex justify-end gap-2">
                     <button type="button" onClick={onClose} className="px-3 py-1.5 text-xs rounded border border-[var(--border)] hover:bg-[var(--hover-bg)] text-[var(--text)]">
-                        Cancel
+                        {t('cancel')}
                     </button>
                     <button type="submit" className="px-3 py-1.5 text-xs rounded bg-[var(--accent)] text-white hover:opacity-90">
-                        Confirm
+                        {t('confirm')}
                     </button>
                 </div>
             </form>

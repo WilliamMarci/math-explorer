@@ -31,7 +31,7 @@ export const useGraphActions = ({
         return map;
     }, [library]);
 
-    const addNode = useCallback((transform, type = 'default') => {
+    const addNode = useCallback((transform, type = 'default', x = null, y = null) => {
         const newContentId = `topic_${Date.now()}`; 
         const newNodeId = `node_${Date.now()}`;
         setLibrary(prev => ({ 
@@ -42,15 +42,18 @@ export const useGraphActions = ({
         const newNode = { 
             id: newNodeId, 
             contentId: newContentId, 
-            x: -transform.x / transform.k + window.innerWidth/2, 
-            y: -transform.y / transform.k + window.innerHeight/2, 
+            x: x !== null ? x : (-transform.x / transform.k + window.innerWidth/2), 
+            y: y !== null ? y : (-transform.y / transform.k + window.innerHeight/2), 
             color: COLORS[Math.floor(Math.random() * COLORS.length)] 
         };
         
         graphData.current.nodes.push(newNode); 
         updateSimulation();
+        
+        setNodeOrder(prev => [newContentId, ...prev]);
+
         if (saveHistory) setTimeout(saveHistory, 50);
-    }, [graphData, setLibrary, updateSimulation, saveHistory]);
+    }, [graphData, setLibrary, updateSimulation, saveHistory, setNodeOrder]);
 
     const spawnNode = useCallback((contentId, posX, posY, transform, parentId = null) => {
         const newNodeId = `node_${Date.now()}`;
@@ -69,8 +72,14 @@ export const useGraphActions = ({
             graphData.current.links.push({ source: parentId, target: newNodeId });
         }
         updateSimulation();
+
+        setNodeOrder(prev => {
+            if (prev.includes(contentId)) return prev;
+            return [contentId, ...prev];
+        });
+
         if (saveHistory) setTimeout(saveHistory, 50);
-    }, [graphData, updateSimulation, saveHistory]);
+    }, [graphData, updateSimulation, saveHistory, setNodeOrder]);
 
     const deleteNode = useCallback((nodeId) => {
         const node = graphData.current.nodes.find(n => n.id === nodeId);

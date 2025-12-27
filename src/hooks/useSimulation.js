@@ -12,7 +12,8 @@ export const useSimulation = (graphData, svgRef, settings, library, setNodes, se
             .force("charge", d3.forceManyBody().strength(-settings.gravity))
             .force("x", d3.forceX(0).strength(settings.centering / 2000))
             .force("y", d3.forceY(0).strength(settings.centering / 2000))
-            .force("link", d3.forceLink(graphData.current.links).id(d => d.id).distance(settings.distance))
+            .velocityDecay(0.8) // Add resistance/damping
+            .force("link", d3.forceLink(graphData.current.links).id(d => d.id).distance(settings.distance).strength(0.5))
             .force("collide", d3.forceCollide().radius(d => {
                 const content = library[d.contentId];
                 if (!content) return 150;
@@ -22,7 +23,7 @@ export const useSimulation = (graphData, svgRef, settings, library, setNodes, se
                 const textLen = (content.template || "").length + (content.note || "").length;
                 if (textLen > 100) r += 40;
                 return r;
-            }).strength(0.8).iterations(2))
+            }).strength(1).iterations(4))
             .on("tick", () => { 
                 setNodes([...graphData.current.nodes]); 
                 setLinks([...graphData.current.links]); 
@@ -168,7 +169,7 @@ export const useSimulation = (graphData, svgRef, settings, library, setNodes, se
                 }
             });
 
-            simulationRef.current.alpha(0.3).restart(); 
+            simulationRef.current.alpha(0.1).restart(); 
         }
     }, [settings.gravity, settings.centering, settings.distance, library, settings.minimalMode, hoveredNodeId, settings.minimalGapRatio, settings.collisionPadding]);
 

@@ -67,20 +67,30 @@
 /* ==========================================================================
    UI Panels
    ========================================================================== */
+.library-note-preview .markdown-body {
+    color: var(--note-text) !important;
+}
+
 .ui-panel { 
     position: fixed; background: var(--card-bg); border: 1px solid var(--border); 
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 100; border-radius: 12px; 
     color: var(--text); display: flex; flex-direction: column;
-    transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transition: width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s, 
+                height 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                 background 0.3s;
     overflow: hidden;
 }
 
+.ui-panel.open {
+    transition: width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                height 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.15s;
+}
+
 .panel-content-wrapper {
-    width: 16rem; /* w-64 */
+    width: 100%;
+    min-width: 16rem;
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateX(10px);
     transition: opacity 0.2s ease, transform 0.2s ease;
     pointer-events: none;
     visibility: hidden;
@@ -88,10 +98,10 @@
 }
 .ui-panel.open .panel-content-wrapper {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
     pointer-events: auto;
     visibility: visible;
-    transition-delay: 0.1s;
+    transition-delay: 0.05s;
 }
 
 .nav-panel { top: 24px; left: 24px; max-height: 80vh; }

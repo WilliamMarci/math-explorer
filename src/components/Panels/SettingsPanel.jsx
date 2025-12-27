@@ -9,10 +9,10 @@ const SettingsPanel = ({ settings, setSettings, shortcuts, setShortcuts, t, onEx
     const [activeTab, setActiveTab] = useState('general');
 
     const tabs = [
-        { id: 'general', label: t.settings || 'General', icon: icons?.settings },
-        { id: 'physics', label: t.PHYandLAY || 'Physics', icon: icons?.physics },
-        { id: 'appearance', label: 'Appearance', icon: icons?.appearance },
-        { id: 'shortcuts', label: 'Shortcuts', icon: icons?.shortcuts }
+        { id: 'general', label: t.general || 'General', icon: icons?.settings },
+        { id: 'physics', label: t.physics || 'Physics', icon: icons?.physics },
+        { id: 'appearance', label: t.appearance || 'Appearance', icon: icons?.appearance },
+        { id: 'shortcuts', label: t.shortcutsTab || 'Shortcuts', icon: icons?.shortcuts }
     ];
 
     return (
@@ -32,7 +32,7 @@ const SettingsPanel = ({ settings, setSettings, shortcuts, setShortcuts, t, onEx
 
             <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
                 {activeTab === 'general' && <GeneralSettings settings={settings} setSettings={setSettings} t={t} icons={icons} />}
-                {activeTab === 'physics' && <PhysicsSettings settings={settings} setSettings={setSettings} t={t} />}
+                {activeTab === 'physics' && <PhysicsSettings settings={settings} setSettings={setSettings} t={t} maxGravity={5000} maxDistance={2000} />}
                 {activeTab === 'appearance' && <AppearanceSettings settings={settings} setSettings={setSettings} t={t} />}
                 {activeTab === 'shortcuts' && <ShortcutsSettings shortcuts={shortcuts} setShortcuts={setShortcuts} t={t} />}
             </div>

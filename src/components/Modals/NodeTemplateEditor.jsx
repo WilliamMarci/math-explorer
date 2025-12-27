@@ -6,7 +6,7 @@ import SegmentList from '../UI/SegmentList';
 import Icon from '../UI/Icon';
 import { usePanelResize } from '../../hooks/usePanelResize';
 
-const NodeTemplateEditor = ({ content, cId, onClose, onSave, onDelete, lang, I18N, settings, icons }) => {
+const NodeTemplateEditor = ({ content, cId, onClose, onSave, onDelete, lang, I18N, settings, icons, existingTags }) => {
     const t = I18N[lang];
     const isPixelMode = settings?.pixelMode;
     const { width, handleMouseDown } = usePanelResize(900, 600, 1400, 'right');
@@ -70,6 +70,15 @@ const NodeTemplateEditor = ({ content, cId, onClose, onSave, onDelete, lang, I18
     };
 
     const inputClass = "w-full px-3 py-2 rounded text-sm outline-none transition-colors bg-[var(--input-bg)] text-[var(--text)] border border-[var(--border)] focus:border-[var(--accent)]";
+
+    const toggleTag = (tag) => {
+        const currentTags = data.tags || [];
+        if (currentTags.includes(tag)) {
+            setData({ ...data, tags: currentTags.filter(t => t !== tag) });
+        } else {
+            setData({ ...data, tags: [...currentTags, tag] });
+        }
+    };
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -135,17 +144,28 @@ const NodeTemplateEditor = ({ content, cId, onClose, onSave, onDelete, lang, I18
 
                             <div className="flex gap-4">
                                 <div className="flex-1">
-                                    <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.folder || "Folder"}</label>
-                                    <input className={inputClass} value={data.folder} onChange={e => setData({...data, folder: e.target.value})} placeholder="e.g. Math/Algebra" />
-                                </div>
-                                <div className="flex-1">
                                     <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.tags || "Tags"}</label>
-                                    <input 
-                                        className={inputClass} 
-                                        value={data.tags.join(', ')} 
-                                        onChange={e => setData({...data, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} 
-                                        placeholder="tag1, tag2" 
-                                    />
+                                    <div className="relative">
+                                        <input 
+                                            className={inputClass} 
+                                            value={data.tags.join(', ')} 
+                                            onChange={e => setData({...data, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} 
+                                            placeholder="tag1, tag2" 
+                                        />
+                                        {existingTags && existingTags.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mt-2">
+                                                {existingTags.map(tag => (
+                                                    <span 
+                                                        key={tag} 
+                                                        className={`text-[10px] px-2 py-0.5 rounded cursor-pointer border transition-colors ${data.tags.includes(tag) ? 'bg-[var(--accent)] text-white border-[var(--accent)]' : 'bg-[var(--input-bg)] border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]'}`}
+                                                        onClick={() => toggleTag(tag)}
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 

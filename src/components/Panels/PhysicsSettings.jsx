@@ -1,25 +1,25 @@
 import React from 'react';
 
-const PhysicsSettings = ({ settings, setSettings, t }) => {
+const PhysicsSettings = ({ settings, setSettings, t, maxGravity = 5000, maxDistance = 1000 }) => {
     return (
         <div className="space-y-4">
             <div>
                 <div className="flex justify-between text-[10px] mb-1 opacity-60 uppercase font-bold">
-                    <span>{t.gravity} (Repel)</span>
+                    <span>{t.gravity} ({t.repel})</span>
                     <span>{settings.gravity}</span>
                 </div>
                 <input 
                     type="range" 
                     className="modern-range" 
                     min="50" 
-                    max="1000" 
+                    max={maxGravity} 
                     value={settings.gravity} 
                     onChange={e => setSettings({...settings, gravity: +e.target.value})} 
                 />
             </div>
             <div>
                 <div className="flex justify-between text-[10px] mb-1 opacity-60 uppercase font-bold">
-                    <span>{t.centering} (Attract)</span>
+                    <span>{t.centering} ({t.attract})</span>
                     <span>{settings.centering}</span>
                 </div>
                 <input 
@@ -27,21 +27,21 @@ const PhysicsSettings = ({ settings, setSettings, t }) => {
                     className="modern-range" 
                     min="0" 
                     max="100" 
-                    step="5" 
+                    step="1" 
                     value={settings.centering} 
                     onChange={e => setSettings({...settings, centering: +e.target.value})} 
                 />
             </div>
             <div>
                 <div className="flex justify-between text-[10px] mb-1 opacity-60 uppercase font-bold">
-                    <span>{t.distance} (Link Gap)</span>
+                    <span>{t.distance} ({t.linkGap})</span>
                     <span>{settings.distance}</span>
                 </div>
                 <input 
                     type="range" 
                     className="modern-range" 
                     min="10" 
-                    max="300" 
+                    max={maxDistance} 
                     value={settings.distance} 
                     onChange={e => setSettings({...settings, distance: +e.target.value})} 
                 />

@@ -26,18 +26,29 @@ import localScene from '../scene.json';
 const App = () => {
     // --- State ---
     const {
-        library, setLibrary,
+        library: sceneLibrary, setLibrary: setSceneLibrary,
         nodes, setNodes,
         links, setLinks,
         expandedState, setExpandedState,
         graphData
     } = useGraphState(localScene);
-    
-    const [transform, setTransform] = useState({ x: window.innerWidth/2, y: window.innerHeight/2, k: 1 });
+
+    const [userLibrary, setUserLibrary] = useState(() => {
+        const saved = localStorage.getItem('mathmap_user_library');
+        return saved ? JSON.parse(saved) : {};
+    });
+
+    useEffect(() => {
+        localStorage.setItem('mathmap_user_library', JSON.stringify(userLibrary));
+    }, [userLibrary]);
+
+    const effectiveLibrary = React.useMemo(() => ({ ...userLibrary, ...sceneLibrary }), [userLibrary, sceneLibrary]);
+
     const [tooltip, setTooltip] = useState(null);
     const [editingNodeId, setEditingNodeId] = useState(null);
     const [focusedNodeId, setFocusedNodeId] = useState(null);
     const [hoveredNodeId, setHoveredNodeId] = useState(null);
+    const [transform, setTransform] = useState({ k: 1, x: 0, y: 0 });
     
     // UI & Logic State
     const [showExportModal, setShowExportModal] = useState(false);
@@ -66,13 +77,13 @@ const App = () => {
     const [settings, setSettings] = useState(() => {
         const saved = localStorage.getItem('mathmap_settings');
         return saved ? JSON.parse(saved) : { 
-            theme: 'auto', gravity: 400, centering: 10, distance: 350, 
+            theme: 'auto', gravity: 100, centering: 0.01, distance: 500, 
             showTooltips: true, showMinimap: true, lang: 'en',
             showEdgeLabels: true, edgeLabelMode: 'side', edgeLabelBg: 'none',
             minimalMode: false,
             segmentHighlights: true,
             minimalGapRatio: 0.5,
-            collisionPadding: 10,
+            collisionPadding: 20,
             pixelMode: false,
             pixelFont: true,
             pixelMath: true
@@ -95,10 +106,10 @@ const App = () => {
 
     // --- Refs ---
     const svgRef = useRef(null);
-    const libraryRef = useRef(library);
+    const libraryRef = useRef(effectiveLibrary);
     const expandedStateRef = useRef(expandedState);
 
-    useEffect(() => { libraryRef.current = library; }, [library]);
+    useEffect(() => { libraryRef.current = effectiveLibrary; }, [effectiveLibrary]);
     useEffect(() => { expandedStateRef.current = expandedState; }, [expandedState]);
 
     const handleCanvasContextMenu = (e) => {
@@ -111,7 +122,7 @@ const App = () => {
         setContextMenu({ visible: true, x: e.clientX, y: e.clientY, type: 'canvas', targetId: null });
     };
 
-    const { simulationRef, zoomBehavior } = useSimulation(graphData, svgRef, settings, library, setNodes, setLinks, setTransform, handleCanvasContextMenu, isSpacePressed, viewModeRef, hoveredNodeId);
+    const { simulationRef, zoomBehavior } = useSimulation(graphData, svgRef, settings, effectiveLibrary, setNodes, setLinks, setTransform, handleCanvasContextMenu, isSpacePressed, viewModeRef, hoveredNodeId);
 
     // --- Helpers ---
     const updateSimulation = useCallback(() => {
@@ -127,7 +138,7 @@ const App = () => {
     const handleUndo = useCallback(() => {
         const state = undo();
         if (state) {
-            setLibrary(state.library);
+            setSceneLibrary(state.library);
             setExpandedState(state.expandedState);
             setNodes(state.nodes);
             setLinks(state.links);
@@ -135,12 +146,12 @@ const App = () => {
             graphData.current.links = state.links.map(l => ({...l}));
             updateSimulation();
         }
-    }, [undo, setLibrary, setExpandedState, setNodes, setLinks, graphData, updateSimulation]);
+    }, [undo, setSceneLibrary, setExpandedState, setNodes, setLinks, graphData, updateSimulation]);
 
     const handleRedo = useCallback(() => {
         const state = redo();
         if (state) {
-            setLibrary(state.library);
+            setSceneLibrary(state.library);
             setExpandedState(state.expandedState);
             setNodes(state.nodes);
             setLinks(state.links);
@@ -148,13 +159,14 @@ const App = () => {
             graphData.current.links = state.links.map(l => ({...l}));
             updateSimulation();
         }
-    }, [redo, setLibrary, setExpandedState, setNodes, setLinks, graphData, updateSimulation]);
+    }, [redo, setSceneLibrary, setExpandedState, setNodes, setLinks, graphData, updateSimulation]);
+
+    const sceneLibraryRef = useRef(sceneLibrary);
+    useEffect(() => { sceneLibraryRef.current = sceneLibrary; }, [sceneLibrary]);
 
     const saveHistory = useCallback(() => {
-        // Use refs to get latest state without closure staleness
-        // We need to ensure this runs AFTER state updates have been reflected in refs
         pushState({
-            library: JSON.parse(JSON.stringify(libraryRef.current)),
+            library: JSON.parse(JSON.stringify(sceneLibraryRef.current)),
             nodes: graphData.current.nodes.map(n => ({ ...n })),
             links: graphData.current.links.map(l => ({ 
                 ...l, 
@@ -163,7 +175,21 @@ const App = () => {
             })),
             expandedState: { ...expandedStateRef.current }
         });
-    }, [pushState, graphData]); // Stable dependencies
+    }, [pushState, graphData]);
+
+    const actions = useGraphActions({
+        graphData,
+        setLibrary: setSceneLibrary,
+        setExpandedState,
+        setNodes,
+        updateSimulation,
+        setEditingNodeId,
+        library: sceneLibrary,
+        setNodeOrder,
+        saveHistory
+    });
+
+    const { addNode, deleteNode, toggleVisibility, handleToggle, handleSaveNode, spawnNode } = actions;
 
     // --- Interaction Hook ---
     const { selectionBox, handleMouseDown: handleCanvasMouseDown, handleDragStart } = useCanvasInteraction({
@@ -179,19 +205,111 @@ const App = () => {
         onDragEnd: saveHistory
     });
 
-    const actions = useGraphActions({
-        graphData,
-        setLibrary,
-        setExpandedState,
-        setNodes,
-        updateSimulation,
-        setEditingNodeId,
-        library,
-        setNodeOrder,
-        saveHistory
-    });
+    const handleDragOver = useCallback((e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    }, []);
 
-    const { addNode, deleteNode, toggleVisibility, handleToggle, handleSaveNode, spawnNode } = actions;
+    const handleDrop = useCallback((e) => {
+        e.preventDefault();
+        
+        // Handle Library Drop
+        const libraryContentId = e.dataTransfer.getData('application/mathmap-node');
+        // Use effectiveLibrary (via ref to avoid stale closure if needed, or just dependency)
+        // We need to ensure we have access to the latest library.
+        // Since handleDrop is a callback, we should add effectiveLibrary to dependencies.
+        const lib = libraryRef.current || userLibrary; // Fallback
+
+        if (libraryContentId && lib[libraryContentId]) {
+            const rect = svgRef.current.getBoundingClientRect();
+            const x = (e.clientX - rect.left - transform.x) / transform.k;
+            const y = (e.clientY - rect.top - transform.y) / transform.k;
+            
+            // Clone content for new instance (Template behavior)
+            const newContentId = `topic_${Math.random().toString(36).substr(2, 9)}`;
+            const content = lib[libraryContentId];
+            const newContent = { ...content, hidden: true }; // Mark as hidden instance
+            // Deep copy segments to ensure independence
+            newContent.segments = JSON.parse(JSON.stringify(content.segments || {}));
+            
+            setSceneLibrary(prev => ({ ...prev, [newContentId]: newContent }));
+            // Spawn at mouse position
+            spawnNode(newContentId, x, y, { k: 1, x: 0, y: 0 }); // Pass identity transform to spawnNode because we already calculated absolute x/y
+            return;
+        }
+
+        // Handle Explorer Drop (react-dnd-node)
+        const data = e.dataTransfer.getData('application/react-dnd-node');
+        if (data) {
+            try {
+                const { type, contentId } = JSON.parse(data);
+                const rect = svgRef.current.getBoundingClientRect();
+                const x = (e.clientX - rect.left - transform.x) / transform.k;
+                const y = (e.clientY - rect.top - transform.y) / transform.k;
+                
+                if (contentId) {
+                    const sourceContent = userLibrary[contentId];
+                    if (sourceContent) {
+                        const newContentId = crypto.randomUUID();
+                        setSceneLibrary(prev => ({
+                            ...prev,
+                            [newContentId]: { ...sourceContent }
+                        }));
+                        
+                        const newNode = {
+                            id: crypto.randomUUID(),
+                            contentId: newContentId,
+                            x, y,
+                            color: sourceContent.type === 'note' ? '#fcd34d' : '#60a5fa'
+                        };
+                        
+                        graphData.current.nodes.push(newNode);
+                        updateSimulation();
+                        saveHistory();
+                    }
+                } else {
+                    // Create new empty node
+                    addNode({ k: 1, x: 0, y: 0 }, type, x, y); 
+                }
+            } catch (err) {
+                console.error("Drop error", err);
+            }
+            return;
+        }
+
+        // Handle File Drop
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            if (file.name.endsWith('.mathmap')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (data.scene) {
+                            // New format
+                            setNodes(data.scene.nodes || []);
+                            setLinks(data.scene.links || []);
+                            setExpandedState(data.scene.expandedState || {});
+                            if (data.library) setSceneLibrary(data.library);
+                        } else if (data.nodes) {
+                            // Old format
+                            setNodes(data.nodes || []);
+                            setLinks(data.edges || []);
+                            if (data.viewport) {
+                                setTransform({ x: data.viewport.x, y: data.viewport.y, k: data.viewport.zoom });
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error parsing mathmap file:', error);
+                        setAlertModal({ isOpen: true, title: I18N[settings.lang].error || "Error", message: I18N[settings.lang].importFailed || "Import failed" });
+                    }
+                };
+                reader.readAsText(file);
+            } else if (file.name.endsWith('.mathlib')) {
+                 handleImportLibrary({ target: { files: [file] } });
+            }
+        }
+    }, [transform, userLibrary, setSceneLibrary, graphData, updateSimulation, saveHistory, addNode, spawnNode, settings.lang]);
 
     const handleRequestDeleteNode = useCallback((nodeId) => {
         if (selectedNodeIds.length > 0) {
@@ -205,8 +323,8 @@ const App = () => {
         contextMenu,
         setContextMenu,
         graphData,
-        library,
-        setLibrary,
+        library: effectiveLibrary,
+        setLibrary: setSceneLibrary,
         clipboard,
         setClipboard,
         setEditingNodeId,
@@ -252,12 +370,12 @@ const App = () => {
                 try {
                     const data = JSON.parse(ev.target.result);
                     if (data.library) {
-                        setLibrary(prev => ({ ...prev, ...data.library }));
+                        setUserLibrary(prev => ({ ...prev, ...data.library }));
                     } else {
                         // Assume it's a raw library object
-                        setLibrary(prev => ({ ...prev, ...data }));
+                        setUserLibrary(prev => ({ ...prev, ...data }));
                     }
-                } catch (err) { setAlertModal({ isOpen: true, title: "Error", message: "Invalid Library file" }); }
+                } catch (err) { setAlertModal({ isOpen: true, title: I18N[settings.lang].error || "Error", message: "Invalid Library file" }); }
             };
             reader.readAsText(file);
         };
@@ -267,7 +385,7 @@ const App = () => {
     const handleExportLibrary = () => {
         const data = { 
             meta: { type: 'mathmap-library', version: 1 },
-            library 
+            library: userLibrary 
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});
         const url = URL.createObjectURL(blob); 
@@ -276,45 +394,28 @@ const App = () => {
     };
 
     const handleUpdateLibraryItem = (cId, updates) => {
-        setLibrary(prev => ({
+        setUserLibrary(prev => ({
             ...prev,
             [cId]: { ...prev[cId], ...updates }
         }));
     };
 
     const handleDeleteLibraryItem = (cId) => {
-        setLibrary(prev => {
+        setUserLibrary(prev => {
+            const next = { ...prev };
+            delete next[cId];
+            return next;
+        });
+        setSceneLibrary(prev => {
             const next = { ...prev };
             delete next[cId];
             return next;
         });
     };
 
-    const handleDrop = (e) => {
-        e.preventDefault();
-        const contentId = e.dataTransfer.getData('application/mathmap-node');
-        if (contentId && library[contentId]) {
-            const rect = svgRef.current.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            // Clone content for new instance (Template behavior)
-            const newContentId = `topic_${Math.random().toString(36).substr(2, 9)}`;
-            const content = library[contentId];
-            const newContent = { ...content }; // Deep copy if needed, but shallow copy of content object is fine as we replace it
-            // Actually, segments might need deep copy if we modify them later? 
-            // For now, shallow copy of content structure is okay, but segments object should be new.
-            newContent.segments = JSON.parse(JSON.stringify(content.segments || {}));
-            
-            setLibrary(prev => ({ ...prev, [newContentId]: newContent }));
-            spawnNode(newContentId, x, y, transform);
-        }
-    };
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
-    };
+
+
 
     // --- Effects ---
 
@@ -478,7 +579,8 @@ const App = () => {
         if (format === 'json') {
             if (!filename.toLowerCase().endsWith('.mathmap') && !filename.toLowerCase().endsWith('.json')) filename += '.mathmap';
             const data = { 
-                library, 
+                // Only export scene library
+                library: sceneLibrary, 
                 scene: { 
                     nodes: graphData.current.nodes.map(n => ({ id: n.id, contentId: n.contentId, x: n.x, y: n.y, fx: n.fx, fy: n.fy, color: n.color })), 
                     links: graphData.current.links.map(l => ({ source: l.source.id || l.source, target: l.target.id || l.target })), 
@@ -495,7 +597,7 @@ const App = () => {
             if (!svg) return;
             
             const printWindow = window.open('', '_blank');
-            if (!printWindow) { setAlertModal({ isOpen: true, title: "Error", message: "Please allow popups to export PDF" }); return; }
+            if (!printWindow) { setAlertModal({ isOpen: true, title: I18N[settings.lang].error || "Error", message: "Please allow popups to export PDF" }); return; }
             
             const clone = svg.cloneNode(true);
             // Ensure it fits on page or scales
@@ -588,7 +690,7 @@ const App = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             const data = {
-                library,
+                library: sceneLibrary,
                 scene: {
                     nodes: graphData.current.nodes.map(n => ({ id: n.id, contentId: n.contentId, x: n.x, y: n.y, fx: n.fx, fy: n.fy, color: n.color })),
                     links: graphData.current.links.map(l => ({ source: l.source.id || l.source, target: l.target.id || l.target })),
@@ -598,7 +700,7 @@ const App = () => {
             localStorage.setItem('mathmap_autosave', JSON.stringify(data));
         }, 2000);
         return () => clearTimeout(timer);
-    }, [library, expandedState, nodes, links]); // Debounced auto-save
+    }, [sceneLibrary, expandedState, nodes, links]); // Debounced auto-save
 
     const handleImport = (e) => {
         const file = e.target.files[0]; if (!file) return;
@@ -606,14 +708,28 @@ const App = () => {
         reader.onload = (ev) => {
             try {
                 const data = JSON.parse(ev.target.result);
-                if (data.library && data.scene) {
-                    setLibrary(data.library); 
+                if (data.scene) {
+                    // Load Scene
                     setExpandedState(data.scene.expandedState || {});
                     graphData.current.nodes = data.scene.nodes; 
                     graphData.current.links = data.scene.links;
+                    
+                    // Load scene content into sceneLibrary
+                    if (data.library) {
+                        setSceneLibrary(data.library);
+                    }
+                    
                     updateSimulation();
+                    console.log(I18N[settings.lang].sceneLoaded || "Scene loaded");
+                } else if (data.library) {
+                    // Load Library (fallback if user selects library file via this input)
+                    setUserLibrary(prev => ({ ...prev, ...data.library }));
+                    console.log(I18N[settings.lang].libraryLoaded || "Library loaded");
                 }
-            } catch (err) { setAlertModal({ isOpen: true, title: "Error", message: "Invalid MathMap file" }); }
+            } catch (err) { 
+                console.error("Import error:", err);
+                setAlertModal({ isOpen: true, title: I18N[settings.lang].error || "Error", message: I18N[settings.lang].invalidFile || "Invalid MathMap file" }); 
+            }
         };
         reader.readAsText(file);
     };
@@ -624,7 +740,7 @@ const App = () => {
             
             {/* UI Overlay: Sibling of SVG, so right-clicks here won't bubble to SVG */}
             <UIOverlay 
-                nodes={nodes} library={library} transform={transform} svgRef={svgRef}
+                nodes={nodes} library={effectiveLibrary} sceneLibrary={sceneLibrary} userLibrary={userLibrary} transform={transform} svgRef={svgRef}
                 settings={{...settings, linksRef: links}} setSettings={setSettings}
                 onAddNode={(type) => addNode(transform, type)} onExport={handleExportClick} onImport={handleImport}
                 onTogglePin={handlePinNode} onEditNode={setEditingNodeId} onDeleteNode={deleteNode}
@@ -659,6 +775,8 @@ const App = () => {
                 icons={icons}
                 // Hide cancel button for alert style
                 isAlert={true}
+                lang={settings.lang}
+                I18N={I18N}
             />
 
             <ConfirmModal
@@ -670,8 +788,10 @@ const App = () => {
                     setFocusedNodeId(null);
                 }}
                 title={I18N[settings.lang].delete || "Delete"}
-                message={`Are you sure you want to delete ${canvasDeleteModal.ids.length} node(s)?`}
+                message={`${I18N[settings.lang].deleteConfirmation || "Are you sure you want to delete"} ${canvasDeleteModal.ids.length} node(s)?`}
                 icons={icons}
+                lang={settings.lang}
+                I18N={I18N}
             />
 
             <ContextMenu 
@@ -694,7 +814,7 @@ const App = () => {
 
             {editingNodeId && (() => {
                 const node = nodes.find(n => n.id === editingNodeId);
-                const content = node ? library[node.contentId] : null;
+                const content = node ? effectiveLibrary[node.contentId] : null;
                 if (node && content) {
                     return (
                         <NodeEditor 
@@ -702,7 +822,7 @@ const App = () => {
                             content={content} 
                             onClose={() => setEditingNodeId(null)} 
                             onSave={handleSaveNode} onDelete={handleRequestDeleteNode} 
-                            lang={settings.lang} existingIds={Object.keys(library)} I18N={I18N} 
+                            lang={settings.lang} existingIds={Object.keys(effectiveLibrary)} I18N={I18N} 
                             settings={settings}
                             icons={icons}
                         />
@@ -722,7 +842,7 @@ const App = () => {
                     transform={transform}
                     links={links}
                     nodes={nodes}
-                    library={library}
+                    library={effectiveLibrary}
                     onToggle={handleToggle}
                     onHover={(e, data) => setTooltip(data ? { x: e.clientX, y: e.clientY, data } : null)}
                     onDragStart={handleDragStart}

@@ -5,7 +5,7 @@ import LibraryPanel from './Panels/LibraryPanel';
 import ControlPanel from './ControlPanel';
 
 const UIOverlay = ({ 
-    nodes, library, transform, svgRef,
+    nodes, library, sceneLibrary, userLibrary, transform, svgRef,
     settings, setSettings, 
     onAddNode, onExport, onImport, 
     onTogglePin, onEditNode, onDeleteNode, 
@@ -38,6 +38,7 @@ const UIOverlay = ({
             <Explorer 
                 nodes={nodes} 
                 library={library} 
+                sceneLibrary={sceneLibrary}
                 nodeOrder={nodeOrder} 
                 setNodeOrder={setNodeOrder} 
                 links={settings.linksRef || []}
@@ -59,7 +60,7 @@ const UIOverlay = ({
             />
 
             <LibraryPanel 
-                library={library}
+                library={userLibrary}
                 onImportLibrary={onImportLibrary}
                 onExportLibrary={onExportLibrary}
                 onUpdateItem={onUpdateItem}

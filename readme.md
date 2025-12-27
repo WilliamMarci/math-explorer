@@ -113,10 +113,15 @@ v = \frac{d {{pos}} }{d {{time}} }
    while minimal mode, this link line should above node ( when cursor not above) 3. all this can 
    modify in setting panel
 
-
+normal node:
    -------
    name           | formular
    tags           | Formular (fade out()
-   discription  (just show start, fade out)  | formular
+   note discription  (just show start, fade out)  | formular
    -----
-
+note node：
+    -------
+    name           
+    tags           
+    note discription  (note content show start, fade out)
+    -----

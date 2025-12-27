@@ -96,13 +96,13 @@ const AppearanceSettings = ({ settings, setSettings, t }) => {
                                 className={`px-2 py-0.5 text-[10px] rounded ${settings.edgeLabelMode === 'center' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]'}`} 
                                 onClick={() => setSettings({...settings, edgeLabelMode: 'center'})}
                             >
-                                Center
+                                {t.center || "Center"}
                             </button>
                             <button 
                                 className={`px-2 py-0.5 text-[10px] rounded ${settings.edgeLabelMode === 'side' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]'}`} 
                                 onClick={() => setSettings({...settings, edgeLabelMode: 'side'})}
                             >
-                                Side
+                                {t.side || "Side"}
                             </button>
                         </div>
                     </div>
@@ -113,13 +113,13 @@ const AppearanceSettings = ({ settings, setSettings, t }) => {
                                 className={`px-2 py-0.5 text-[10px] rounded ${settings.edgeLabelBg === 'box' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]'}`} 
                                 onClick={() => setSettings({...settings, edgeLabelBg: 'box'})}
                             >
-                                Box
+                                {t.box || "Box"}
                             </button>
                             <button 
                                 className={`px-2 py-0.5 text-[10px] rounded ${settings.edgeLabelBg === 'none' ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)]'}`} 
                                 onClick={() => setSettings({...settings, edgeLabelBg: 'none'})}
                             >
-                                None
+                                {t.none || "None"}
                             </button>
                         </div>
                     </div>

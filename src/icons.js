@@ -38,6 +38,8 @@ export const ICONS = {
     menu: { type: 'font', value: 'ri-menu-line' },
     folder: { type: 'font', value: 'ri-folder-line' },
     file: { type: 'font', value: 'ri-file-line' },
+    folderOpen: { type: 'font', value: 'ri-folder-open-line' },
+    arrowRight: { type: 'font', value: 'ri-arrow-right-s-line' },
     code: { type: 'font', value: 'ri-code-line' }
 };
 
@@ -79,7 +81,9 @@ export const PIXEL_ICONS = {
     list: { type: 'image', value: '/src/assets/svgs/pixel-list.svg' },
     grid: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
     menu: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
-    folder: { type: 'image', value: '/src/assets/svgs/pixel-file.svg' },
+    folder: { type: 'image', value: '/src/assets/svgs/pixel-folder.svg' },
+    folderOpen: { type: 'image', value: '/src/assets/svgs/pixel-folder-open.svg' },
+    arrowRight: { type: 'image', value: '/src/assets/svgs/pixel-arrow-right.svg' },
     file: { type: 'image', value: '/src/assets/svgs/pixel-file.svg' },
     code: { type: 'image', value: '/src/assets/svgs/pixel-file.svg' }
 };

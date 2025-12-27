@@ -1,8 +1,11 @@
 import React from 'react';
 import Icon from '../UI/Icon';
 
-const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, position, icons, isAlert }) => {
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, position, icons, isAlert, lang = 'en', I18N }) => {
     if (!isOpen) return null;
+
+    const t = (key) => I18N?.[lang]?.[key] || key;
+
 
     const style = position ? {
         position: 'fixed',
@@ -28,11 +31,11 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, position, ic
                 <div className="flex justify-end gap-2">
                     {!isAlert && (
                         <button onClick={onClose} className="px-3 py-1.5 text-xs rounded border border-[var(--border)] hover:bg-[var(--hover-bg)] text-[var(--text)]">
-                            Cancel
+                            {t('cancel')}
                         </button>
                     )}
                     <button onClick={() => { onConfirm(); onClose(); }} className={`px-3 py-1.5 text-xs rounded text-white ${isAlert ? 'bg-[var(--accent)] hover:opacity-90' : 'bg-red-500 hover:bg-red-600'}`}>
-                        {isAlert ? 'OK' : 'Confirm'}
+                        {isAlert ? t('ok') : t('confirm')}
                     </button>
                 </div>
             </div>

@@ -1,0 +1,131 @@
+{
+  "meta": {
+    "type": "mathmap-library",
+    "version": 1
+  },
+  "library": {
+    "tut_classical_energy": {
+      "title": "Classical Total Energy",
+      "type": "axiom",
+      "template": "E = {{kinetic}} + {{potential}}",
+      "note": "Total energy is the sum of kinetic and potential energy.",
+      "folder": "Tutorial/Foundations",
+      "segments": {
+        "kinetic": {
+          "text": "\\frac{p^2}{2m}",
+          "type": "link",
+          "target": "tut_de_broglie",
+          "color": "#ef4444",
+          "tooltip": {
+            "title": "Kinetic Energy",
+            "content": "Classical kinetic energy in terms of momentum p.",
+            "contentType": "markdown"
+          },
+          "connectionLabel": "Quantize",
+          "connectionStyle": "dashed"
+        },
+        "potential": {
+          "text": "V(x)",
+          "type": "text",
+          "tooltip": {
+            "title": "Potential Field",
+            "content": "<svg viewBox='0 0 100 50' xmlns='http://www.w3.org/2000/svg'><path d='M0,0 Q50,50 100,0' stroke='#3b82f6' fill='none' stroke-width='2'/></svg>",
+            "contentType": "svg"
+          }
+        }
+      }
+    },
+    "tut_de_broglie": {
+      "title": "De Broglie Relations",
+      "type": "axiom",
+      "template": "\\begin{cases} p = \\hbar k \\\\ E = \\hbar \\omega \\end{cases}",
+      "note": "Connecting particle properties (p, E) to wave properties (k, ω).",
+      "folder": "Tutorial/Foundations",
+      "segments": {}
+    },
+    "tut_plane_wave": {
+      "title": "Plane Wave Function",
+      "type": "definition",
+      "template": "\\Psi(x,t) = A e^{i({{phase}})}",
+      "note": "A complex plane wave describing a free particle.",
+      "folder": "Tutorial/Derivation",
+      "segments": {
+        "phase": {
+          "text": "kx - \\omega t",
+          "type": "text",
+          "tooltip": {
+            "title": "Wave Phase",
+            "content": "Determines the oscillation in space and time.",
+            "contentType": "markdown"
+          }
+        }
+      }
+    },
+    "tut_time_deriv": {
+      "title": "Time Derivative",
+      "type": "derivation",
+      "template": "\\frac{\\partial \\Psi}{\\partial t} = -i\\omega \\Psi \\implies {{energy_op}} \\Psi = E \\Psi",
+      "note": "Extracting the Energy operator.",
+      "folder": "Tutorial/Derivation",
+      "segments": {
+        "energy_op": {
+          "text": "i\\hbar \\frac{\\partial}{\\partial t}",
+          "type": "link",
+          "target": "tut_schrodinger",
+          "color": "#8b5cf6",
+          "tooltip": {
+            "title": "Energy Operator",
+            "content": "The quantum operator corresponding to total energy.",
+            "contentType": "markdown"
+          },
+          "connectionLabel": "Substitute E",
+          "connectionStyle": "solid"
+        }
+      }
+    },
+    "tut_space_deriv": {
+      "title": "Space Derivative",
+      "type": "derivation",
+      "template": "\\frac{\\partial^2 \\Psi}{\\partial x^2} = -k^2 \\Psi \\implies {{momentum_op}} \\Psi = \\frac{p^2}{2m} \\Psi",
+      "note": "Extracting the Kinetic Energy operator.",
+      "folder": "Tutorial/Derivation",
+      "segments": {
+        "momentum_op": {
+          "text": "-\\frac{\\hbar^2}{2m} \\frac{\\partial^2}{\\partial x^2}",
+          "type": "link",
+          "target": "tut_schrodinger",
+          "color": "#ef4444",
+          "tooltip": {
+            "title": "Kinetic Operator",
+            "content": "The quantum operator corresponding to kinetic energy.",
+            "contentType": "markdown"
+          },
+          "connectionLabel": "Substitute T",
+          "connectionStyle": "solid"
+        }
+      }
+    },
+    "tut_schrodinger": {
+      "title": "Time-Dependent Schrödinger Equation",
+      "type": "theorem",
+      "template": "i\\hbar \\frac{\\partial \\Psi}{\\partial t} = \\left( -\\frac{\\hbar^2}{2m} \\nabla^2 + V \\right) \\Psi",
+      "note": "The fundamental equation of quantum mechanics.",
+      "folder": "Tutorial/Result",
+      "segments": {}
+    },
+    "tut_note_intro": {
+      "title": "Introduction",
+      "type": "note",
+      "note": "# Deriving the Schrödinger Equation\n\nWe start from **Classical Mechanics** and apply **Wave-Particle Duality**.\n\n<svg viewBox='0 0 200 50' xmlns='http://www.w3.org/2000/svg'><text x='10' y='30' font-family='serif' font-size='20' fill='#333'>Classical</text><path d='M90,25 L110,25' stroke='#333' marker-end='url(#arrow)'/><text x='120' y='30' font-family='serif' font-size='20' fill='#333'>Quantum</text></svg>",
+      "folder": "Tutorial/Notes",
+      "segments": {}
+    },
+    "tut_note_wavepacket": {
+      "title": "Wave Packet Visualization",
+      "type": "note",
+      "note": "### Wave Packet\n\nA localized particle is represented by a wave packet.\n\n<svg viewBox='0 0 300 100' xmlns='http://www.w3.org/2000/svg'><path d='M10,50 C50,100 100,0 150,50 S250,0 290,50' stroke='#ccc' fill='none' stroke-dasharray='5,5'/><path d='M10,50 Q20,40 30,50 T50,50 T70,50 T90,50 T110,50 T130,50 T150,50 T170,50 T190,50 T210,50 T230,50 T250,50 T270,50 T290,50' stroke='#3b82f6' fill='none'/></svg>",
+      "folder": "Tutorial/Notes",
+      "segments": {}
+    }
+  }
+}

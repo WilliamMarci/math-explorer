@@ -10,7 +10,7 @@ const SegmentList = ({ segments, onUpdate, onDelete, onAdd, t, settings, icons }
     return (
         <div className="space-y-3 p-4 rounded border border-[var(--border)] bg-[var(--input-bg)] flex-1 overflow-y-auto min-h-[400px]">
             {segments.length === 0 && (
-                <div className="text-center opacity-40 text-xs py-8 italic select-none text-[var(--text)]">No segments defined.</div>
+                <div className="text-center opacity-40 text-xs py-8 italic select-none text-[var(--text)]">{t.noSegments || "No segments defined."}</div>
             )}
             
             {segments.map((seg, idx) => (
@@ -29,7 +29,7 @@ const SegmentList = ({ segments, onUpdate, onDelete, onAdd, t, settings, icons }
 
                         <input className={`${inputClass} py-1`} placeholder="LaTeX" value={seg.text} onChange={e => onUpdate(idx, 'text', e.target.value)} />
                         <select className={`${inputClass} w-24 py-1`} value={seg.type} onChange={e => onUpdate(idx, 'type', e.target.value)}>
-                            <option value="text">Text</option><option value="link">Link</option>
+                            <option value="text">{t.text || "Text"}</option><option value="link">{t.link || "Link"}</option>
                         </select>
                         <button className="text-red-400 hover:text-red-600 px-2 transition-colors" onClick={() => onDelete(idx)}><Icon icon={icons?.delete} /></button>
                     </div>
@@ -38,22 +38,22 @@ const SegmentList = ({ segments, onUpdate, onDelete, onAdd, t, settings, icons }
                         <div className="mb-3 pl-4 border-l-2 border-[var(--accent)] ml-1 space-y-3 mt-3">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-[10px] font-bold opacity-50 uppercase mb-1 block text-[var(--text)]">Target ID</label>
+                                    <label className="text-[10px] font-bold opacity-50 uppercase mb-1 block text-[var(--text)]">{t.targetId || "Target ID"}</label>
                                     <input className={`${inputClass} py-1`} placeholder="Target Content ID" value={seg.target || ''} onChange={e => onUpdate(idx, 'target', e.target.value)} />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-bold opacity-50 uppercase mb-1 block text-[var(--text)]">Link Color</label>
+                                    <label className="text-[10px] font-bold opacity-50 uppercase mb-1 block text-[var(--text)]">{t.linkColor || "Link Color"}</label>
                                     <ColorPalette selectedColor={seg.color} onSelect={(c) => onUpdate(idx, 'color', c)} size="sm" />
                                 </div>
                             </div>
 
                             {/* Connection Settings Toggle */}
                             <div className="flex items-center justify-between pt-1 border-t border-[var(--border)] border-dashed mt-2">
-                                <span className="text-xs font-bold opacity-70 uppercase text-[var(--text)]">Connection Style</span>
+                                <span className="text-xs font-bold opacity-70 uppercase text-[var(--text)]">{t.connectionStyle || "Connection Style"}</span>
                                 <button 
                                     className={`w-6 h-6 rounded flex items-center justify-center transition-colors ${seg._connSettingsOpen ? 'bg-[var(--accent)] text-white' : 'bg-[var(--input-bg)] text-[var(--muted)] hover:bg-[var(--border)]'}`}
                                     onClick={() => onUpdate(idx, '_connSettingsOpen', !seg._connSettingsOpen)}
-                                    title="Customize Connection"
+                                    title={t.customizeConnection || "Customize Connection"}
                                 >
                                     <Icon icon={icons?.customize} className="text-xs" />
                                 </button>
@@ -126,13 +126,13 @@ const SegmentList = ({ segments, onUpdate, onDelete, onAdd, t, settings, icons }
                     <details className="pl-10">
                         <summary className="text-xs opacity-50 hover:text-[var(--accent)] cursor-pointer select-none transition-colors text-[var(--text)]">{t.tooltipSettings}</summary>
                         <div className="pt-2 grid gap-2">
-                            <input className={`${inputClass} py-1`} placeholder="Title" value={seg.tooltip?.title || ''} onChange={e => onUpdate(idx, 'tooltip.title', e.target.value)} />
+                            <input className={`${inputClass} py-1`} placeholder={t.titlePlaceholder || "Title..."} value={seg.tooltip?.title || ''} onChange={e => onUpdate(idx, 'tooltip.title', e.target.value)} />
                             <select className={`${inputClass} py-1`} value={seg.tooltip?.contentType || 'markdown'} onChange={e => onUpdate(idx, 'tooltip.contentType', e.target.value)}>
                                 <option value="markdown">Markdown</option>
                                 <option value="latex">LaTeX</option>
                                 <option value="svg">SVG</option>
                             </select>
-                            <textarea className={`${inputClass} py-1`} rows="2" placeholder="Content..." value={seg.tooltip?.content || ''} onChange={e => onUpdate(idx, 'tooltip.content', e.target.value)} />
+                            <textarea className={`${inputClass} py-1`} rows="2" placeholder={t.tooltipPlaceholder || "Content..."} value={seg.tooltip?.content || ''} onChange={e => onUpdate(idx, 'tooltip.content', e.target.value)} />
                         </div>
                     </details>
                 </div>

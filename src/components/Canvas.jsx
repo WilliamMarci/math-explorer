@@ -249,11 +249,11 @@ const Canvas = ({
                                     style={{ stroke: seg?.color || "currentColor" }}
                                     strokeWidth={strokeWidth}
                                 />
-                                {seg?.connectionMarker === 'arrow' && (
+                                {seg?.connectionStyle === 'arrow' && (
                                     <path 
-                                        d="M -6 -4 L 4 0 L -6 4 Z" 
+                                        d="M -9 -6 L 6 0 L -9 6 Z" 
                                         fill={seg?.color || "currentColor"} 
-                                        transform={`translate(${(s.x + t.x) / 2}, ${(s.y + t.y) / 2}) rotate(${Math.atan2(t.y - s.y, t.x - s.x) * 180 / Math.PI})`} 
+                                        transform={`translate(${(x1 + x2) / 2}, ${(y1 + y2) / 2}) rotate(${Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI})`} 
                                     />
                                 )}
                             </g>
@@ -270,19 +270,79 @@ const Canvas = ({
                     const seg = getLinkData(s, t);
                     if (!seg || !seg.connectionLabel) return null;
 
-                    let midX = (s.x + t.x) / 2;
-                    let midY = (s.y + t.y) / 2;
+                    // Calculate actual line coordinates for label positioning
+                    let x1 = s.x;
+                    let y1 = s.y;
+                    let x2 = t.x;
+                    let y2 = t.y;
 
-                    // Apply offset if mode is 'side'
-                    if (settings?.edgeLabelMode === 'side') {
+                    if (seg && seg.key) {
+                        const metrics = getRelativeMetrics(s.id, seg.key);
+                        if (metrics) {
+                            const nodeLeft = s.x - metrics.parentWidth / 2;
+                            const nodeTop = s.y - metrics.parentHeight / 2;
+                            const segX = metrics.x + (metrics.cardX || 0) + (metrics.cardClientLeft || 0);
+                            const segY = metrics.y + (metrics.cardY || 0) + (metrics.cardClientTop || 0);
+                            x1 = nodeLeft + segX + metrics.width / 2;
+                            y1 = nodeTop + segY + metrics.height / 2;
+
+                            if (settings?.minimalMode) {
+                                const isRight = t.x > s.x;
+                                const isBottom = t.y > s.y;
+                                x1 = nodeLeft + segX + (isRight ? metrics.width : 0);
+                                y1 = nodeTop + segY + (isBottom ? metrics.height : 0);
+                            }
+                        } else {
+                             // Fallback
+                            const elem = document.getElementById(`seg-${s.id}-${seg.key}`);
+                            const scene = sceneRef.current;
+                            if (elem && scene) {
+                                const r = elem.getBoundingClientRect();
+                                const sr = scene.getBoundingClientRect();
+                                let lx = (r.left + r.width/2 - sr.left) / transform.k;
+                                let ly = (r.top + r.height/2 - sr.top) / transform.k;
+                                if (settings?.minimalMode) {
+                                    const isRight = t.x > s.x;
+                                    const isBottom = t.y > s.y;
+                                    lx = (isRight ? r.right : r.left) - sr.left;
+                                    ly = (isBottom ? r.bottom : r.top) - sr.top;
+                                    lx /= transform.k;
+                                    ly /= transform.k;
+                                }
+                                x1 = lx;
+                                y1 = ly;
+                            }
+                        }
+                    }
+
+                    const targetElem = document.getElementById(`node-${t.id}`);
+                    if (targetElem) {
+                        const rect = targetElem.getBoundingClientRect();
+                        const w = rect.width / transform.k;
+                        const h = rect.height / transform.k;
+                        const dx = x1 - t.x;
+                        const dy = y1 - t.y;
+                        if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+                            const scale = Math.min((w / 2) / Math.abs(dx), (h / 2) / Math.abs(dy));
+                            const actualScale = Math.min(scale, 1.0); 
+                            x2 = t.x + dx * actualScale;
+                            y2 = t.y + dy * actualScale;
+                        }
+                    }
+
+                    let midX = (x1 + x2) / 2;
+                    let midY = (y1 + y2) / 2;
+
+                    // Apply offset if mode is 'side' or to avoid covering arrow
+                    if (settings?.edgeLabelMode === 'side' || seg?.connectionStyle === 'arrow') {
                         // Calculate perpendicular vector
-                        const dx = t.x - s.x;
-                        const dy = t.y - s.y;
+                        const dx = x2 - x1;
+                        const dy = y2 - y1;
                         const len = Math.sqrt(dx*dx + dy*dy) || 1;
                         // Perpendicular: (-dy, dx)
                         const perpX = -dy / len;
                         const perpY = dx / len;
-                        const offset = 15; // px
+                        const offset = settings?.edgeLabelMode === 'side' ? 15 : 12; // px
                         midX += perpX * offset;
                         midY += perpY * offset;
                     }

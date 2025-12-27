@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "type": "mathmap-library",
+    "version": 1
+  },
+  "library": {
+    "template_basic_math": {
+      "title": "Basic Math",
+      "type": "default",
+      "template": "f(x) = x^2",
+      "tags": ["math", "algebra"],
+      "folder": "Math/Algebra",
+      "color": "#3b82f6",
+      "segments": {}
+    },
+    "template_physics_force": {
+      "title": "Force Equation",
+      "type": "default",
+      "template": "F = ma",
+      "tags": ["physics", "newton"],
+      "folder": "Physics",
+      "color": "#ef4444",
+      "segments": {}
+    },
+    "template_note_example": {
+      "title": "Important Note",
+      "type": "note",
+      "note": "# This is a note\n\n- Point 1\n- Point 2",
+      "tags": ["general", "info"],
+      "folder": "Notes",
+      "color": "#10b981",
+      "segments": {}
+    }
+  }
+}

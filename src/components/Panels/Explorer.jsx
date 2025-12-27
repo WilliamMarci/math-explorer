@@ -68,7 +68,7 @@ const GraphSidebar = React.memo(({ items, links, nodes, rowHeight = 32 }) => {
 
 
 const Explorer = ({ 
-    nodes, library, links, 
+    nodes, library, sceneLibrary, links, 
     onFocusNode, onTogglePin, onToggleVisibility, onEditNode, onDeleteNode, onAddNode, onAutoArrange,
     t, nodeOrder, setNodeOrder,
     viewMode, setViewMode,
@@ -98,47 +98,29 @@ const Explorer = ({
         const activeNodeMap = new Map();
         nodes.forEach(n => activeNodeMap.set(n.contentId, n));
 
-        let orderedContentIds = [];
-        const processedIds = new Set();
-        
-        if (nodeOrder && nodeOrder.length > 0) {
-            // Use provided Z-order (reversed for list display: top Z is top of list)
-            const validOrder = [...nodeOrder].reverse().filter(id => library[id]);
-            orderedContentIds.push(...validOrder);
-            validOrder.forEach(id => processedIds.add(id));
-            
-            // Add any missing active nodes to the end
-            nodes.forEach(n => {
-                if (!processedIds.has(n.contentId) && library[n.contentId]) {
-                    orderedContentIds.push(n.contentId);
-                    processedIds.add(n.contentId);
-                }
-            });
+        // Use sceneLibrary keys as the source of truth for "Scene Nodes"
+        // This ensures hidden nodes (which are in sceneLibrary but not in nodes) are included.
+        // And it ensures User Library nodes (which are in library but not sceneLibrary) are excluded.
+        let allIds = sceneLibrary ? Object.keys(sceneLibrary) : [];
 
-            // Add any remaining library items (inactive/hidden)
-            Object.keys(library).forEach(cId => {
-                if (!processedIds.has(cId)) {
-                    orderedContentIds.push(cId);
-                    processedIds.add(cId);
-                }
-            });
-        } else {
-            // Fallback: Active nodes first, then others
-            nodes.forEach(n => {
-                if (library[n.contentId]) {
-                    orderedContentIds.push(n.contentId);
-                    processedIds.add(n.contentId);
-                }
-            });
-            Object.keys(library).forEach(cId => {
-                if (!processedIds.has(cId)) {
-                    orderedContentIds.push(cId);
-                }
+        // Apply Sort Order
+        if (nodeOrder && nodeOrder.length > 0) {
+            const orderMap = new Map(nodeOrder.map((id, i) => [id, i]));
+            
+            allIds.sort((a, b) => {
+                const idxA = orderMap.has(a) ? orderMap.get(a) : -1;
+                const idxB = orderMap.has(b) ? orderMap.get(b) : -1;
+                
+                // We want reverse order of nodeOrder (Top Z = Top List)
+                if (idxA !== -1 && idxB !== -1) return idxB - idxA; 
+                if (idxA !== -1) return -1; // a has order, b doesn't -> a first (top)
+                if (idxB !== -1) return 1; // b has order, a doesn't -> b first (top)
+                return 0;
             });
         }
 
-        // 3. Map to item objects
-        const items = orderedContentIds.map(cId => {
+        // Map to item objects
+        const items = allIds.map(cId => {
             const activeNode = activeNodeMap.get(cId);
             const content = library[cId];
             if (!content) return null;
@@ -151,14 +133,14 @@ const Explorer = ({
             };
         }).filter(item => item !== null);
 
-        // 4. Filter by search
+        // Filter by search
         if (searchTerm) {
             const lower = searchTerm.toLowerCase();
             return items.filter(i => i.content.title.toLowerCase().includes(lower));
         }
 
         return items;
-    }, [nodes, library, nodeOrder, searchTerm]);
+    }, [nodes, library, sceneLibrary, nodeOrder, searchTerm]);
 
     // Drag and Drop Handlers
     const dragItem = useRef(null);
@@ -266,7 +248,7 @@ const Explorer = ({
                 (!portalMenuRef.current || !portalMenuRef.current.contains(e.target))) {
                 setShowNewNodeMenu(false); 
             }
-            if (contextMenu && !e.target.closest('.explorer-context-menu')) setContextMenu(null);
+            if (contextMenu && !e.target.closest('.context-menu')) setContextMenu(null);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -303,23 +285,23 @@ const Explorer = ({
         const position = useMenuPosition(menuRef, true, x, y);
         
         return (
-        <div ref={menuRef} className="explorer-context-menu fixed bg-[var(--panel-bg)] text-[var(--text)] border border-[var(--border)] shadow-lg rounded py-1 z-[10000] min-w-[120px]" style={{ top: position.top, left: position.left }}>
+        <div ref={menuRef} className="context-menu" style={{ top: position.top, left: position.left }}>
             {item && item.activeNode ? (
                 <>
-                    <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onFocusNode(item.activeNode); onClose(); }}>
+                    <div className="context-menu-item" onClick={() => { onFocusNode(item.activeNode); onClose(); }}>
                         <Icon icon={icons?.focus} /> {t.focus}
                     </div>
-                    <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onEditNode(item.activeNode.id); onClose(); }}>
+                    <div className="context-menu-item" onClick={() => { onEditNode(item.activeNode.id); onClose(); }}>
                         <Icon icon={icons?.edit} /> {t.edit}
                     </div>
-                    <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onTogglePin(item.activeNode); onClose(); }}>
+                    <div className="context-menu-item" onClick={() => { onTogglePin(item.activeNode); onClose(); }}>
                         <Icon icon={item.isPinned ? icons?.unpin : icons?.pin} /> {item.isPinned ? t.unpin : t.pin}
                     </div>
-                    <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onToggleVisibility(item.activeNode.contentId); onClose(); }}>
+                    <div className="context-menu-item" onClick={() => { onToggleVisibility(item.activeNode.contentId); onClose(); }}>
                         <Icon icon={icons?.hide} /> {t.hide}
                     </div>
                     <div className="h-px bg-[var(--border)] my-1"></div>
-                    <div className="px-4 py-2 text-xs cursor-pointer text-red-500 hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { 
+                    <div className="context-menu-item danger" onClick={() => { 
                         setDeleteModal({
                             isOpen: true,
                             id: item.activeNode.id,
@@ -334,12 +316,12 @@ const Explorer = ({
             ) : item ? (
                 // For inactive items (in library but not on canvas)
                 <>
-                     <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onToggleVisibility(item.cId); onClose(); }}>
+                     <div className="context-menu-item" onClick={() => { onToggleVisibility(item.cId); onClose(); }}>
                         <Icon icon={icons?.view} /> {t.show}
                     </div>
                 </>
             ) : (
-                <div className="px-4 py-2 text-xs cursor-pointer hover:bg-[var(--hover-bg)] flex items-center gap-2" onClick={() => { onAutoArrange(); onClose(); }}>
+                <div className="context-menu-item" onClick={() => { onAutoArrange(); onClose(); }}>
                     <Icon icon={icons?.autoArrange} /> {t.autoArrange}
                 </div>
             )}
@@ -356,7 +338,7 @@ const Explorer = ({
                 onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
                 onConfirm={() => onDeleteNode(deleteModal.id)}
                 title={t.delete || "Delete"}
-                message={`Are you sure you want to delete "${deleteModal.title}"?`}
+                message={`${t.deleteConfirmation || "Are you sure you want to delete"} "${deleteModal.title}"?`}
                 icons={icons}
                 position={deleteModal.position}
             />
@@ -372,8 +354,8 @@ const Explorer = ({
                         onMouseDown={handleMouseDownResize}
                     ></div>
                 )}
-                <div className={`ui-header border-b border-[var(--border)] flex justify-between items-center ${!navOpen ? 'p-0 justify-center' : 'pr-2'} ${!navOpen && viewMode ? 'bg-[var(--accent)] text-white' : 'bg-[var(--panel-bg)]'}`}>
-                    <div className={`flex items-center gap-2 cursor-pointer transition-colors h-full ${!navOpen ? 'justify-center w-full' : ''}`} onClick={() => setNavOpen(!navOpen)}>
+                <div className={`ui-header border-b border-[var(--border)] flex justify-between items-center pl-2 ${!navOpen && viewMode ? 'bg-[var(--accent)] text-white' : 'bg-[var(--panel-bg)]'}`}>
+                    <div className={`flex items-center gap-2 cursor-pointer transition-colors h-full w-full justify-start`} onClick={() => setNavOpen(!navOpen)}>
                         <Icon icon={icons?.explorer} className="text-lg" /> {navOpen && t.explorer}
                     </div>
                     {navOpen && (
@@ -381,7 +363,7 @@ const Explorer = ({
                              <button 
                                 className={`btn-icon w-6 h-6 flex items-center justify-center rounded ${viewMode ? 'bg-[var(--accent)] text-white' : 'text-[var(--muted)] hover:text-[var(--text)]'}`}
                                 onClick={() => setViewMode(!viewMode)}
-                                title={viewMode ? "View Mode (Read Only)" : "Edit Mode"}
+                                title={viewMode ? (t.viewModeReadOnly || "View Mode (Read Only)") : (t.editMode || "Edit Mode")}
                              >
                                 <Icon icon={viewMode ? icons?.view : icons?.edit} />
                              </button>
@@ -404,7 +386,7 @@ const Explorer = ({
                                 <div 
                                     className={`split-btn-main px-2 h-full flex items-center justify-center cursor-pointer hover:opacity-90 text-white ${NODE_COLORS[lastCreatedType]}`} 
                                     onClick={() => handleAddWithType(lastCreatedType)} 
-                                    title={`${t.newNode} (${lastCreatedType})`}
+                                    title={`${t.newNode} (${t.types[lastCreatedType] || lastCreatedType})`}
                                 >
                                     <Icon icon={icons?.add} />
                                 </div>
@@ -425,7 +407,7 @@ const Explorer = ({
                                     {Object.keys(NODE_COLORS).map(type => (
                                         <div key={type} className={`flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[var(--hover-bg)] transition-colors`} onClick={() => handleSelectType(type)}>
                                             <div className={`w-2 h-2 rounded-full ${NODE_COLORS[type]}`}></div> 
-                                            <span className="capitalize text-xs text-[var(--text)]">{type}</span>
+                                            <span className="capitalize text-xs text-[var(--text)]">{t.types[type] || type}</span>
                                         </div>
                                     ))}
                                 </div>,
@@ -452,7 +434,7 @@ const Explorer = ({
                                 </div>
                                 );
                             })}
-                            {explorerItems.length === 0 && <div className="text-center opacity-40 text-xs py-4 pl-8">No nodes found</div>}
+                            {explorerItems.length === 0 && <div className="text-center opacity-40 text-xs py-4 pl-8">{t.noNodes || "No nodes found"}</div>}
                         </div>
                     </div>
                 </div>
