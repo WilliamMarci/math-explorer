@@ -79,7 +79,7 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
     const inputClass = "w-full px-3 py-2 rounded text-sm outline-none transition-colors bg-[var(--input-bg)] text-[var(--text)] border border-[var(--border)] focus:border-[var(--accent)]";
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay">
             <div 
                 className="editor-modal flex flex-col max-h-[90vh] rounded-xl overflow-hidden shadow-2xl border border-[var(--border)] relative" 
                 onClick={e => e.stopPropagation()}
@@ -137,22 +137,6 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
                             </div>
 
                             <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.folder || "Folder"}</label>
-                                    <input className={inputClass} value={data.folder} onChange={e => setData({...data, folder: e.target.value})} placeholder="e.g. Math/Algebra" />
-                                </div>
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.tags || "Tags"}</label>
-                                    <input 
-                                        className={inputClass} 
-                                        value={data.tags.join(', ')} 
-                                        onChange={e => setData({...data, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} 
-                                        placeholder="tag1, tag2" 
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4">
                                 <div className="flex-1 flex flex-col gap-4">
                                     <div>
                                         <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.id}</label>
@@ -184,6 +168,16 @@ const NodeEditor = ({ node, content, onClose, onSave, onDelete, lang, existingId
                             <div>
                                 <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.note}</label>
                                 <textarea className={`${inputClass} font-mono`} rows="4" value={data.note} onChange={e => setData({...data, note: e.target.value})} />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.tags || "Tags"}</label>
+                                <input 
+                                    className={inputClass} 
+                                    value={data.tags.join(', ')} 
+                                    onChange={e => setData({...data, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} 
+                                    placeholder="tag1, tag2" 
+                                />
                             </div>
                         </div>
 

@@ -81,7 +81,7 @@ const NodeTemplateEditor = ({ content, cId, onClose, onSave, onDelete, lang, I18
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay">
             <div 
                 className="editor-modal flex flex-col max-h-[90vh] rounded-xl overflow-hidden shadow-2xl border border-[var(--border)] relative" 
                 onClick={e => e.stopPropagation()}
@@ -143,33 +143,6 @@ const NodeTemplateEditor = ({ content, cId, onClose, onSave, onDelete, lang, I18
                             </div>
 
                             <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.tags || "Tags"}</label>
-                                    <div className="relative">
-                                        <input 
-                                            className={inputClass} 
-                                            value={data.tags.join(', ')} 
-                                            onChange={e => setData({...data, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} 
-                                            placeholder="tag1, tag2" 
-                                        />
-                                        {existingTags && existingTags.length > 0 && (
-                                            <div className="flex flex-wrap gap-1 mt-2">
-                                                {existingTags.map(tag => (
-                                                    <span 
-                                                        key={tag} 
-                                                        className={`text-[10px] px-2 py-0.5 rounded cursor-pointer border transition-colors ${data.tags.includes(tag) ? 'bg-[var(--accent)] text-white border-[var(--accent)]' : 'bg-[var(--input-bg)] border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]'}`}
-                                                        onClick={() => toggleTag(tag)}
-                                                    >
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4">
                                 <div className="flex-1 flex flex-col gap-4">
                                     <div>
                                         <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.type}</label>
@@ -197,6 +170,31 @@ const NodeTemplateEditor = ({ content, cId, onClose, onSave, onDelete, lang, I18
                             <div>
                                 <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.note}</label>
                                 <textarea className={`${inputClass} font-mono`} rows="4" value={data.note} onChange={e => setData({...data, note: e.target.value})} />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold mb-1 opacity-70 uppercase text-[var(--text)]">{t.tags || "Tags"}</label>
+                                <div className="relative">
+                                    <input 
+                                        className={inputClass} 
+                                        value={data.tags.join(', ')} 
+                                        onChange={e => setData({...data, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} 
+                                        placeholder="tag1, tag2" 
+                                    />
+                                    {existingTags && existingTags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                            {existingTags.map(tag => (
+                                                <span 
+                                                    key={tag} 
+                                                    className={`text-[10px] px-2 py-0.5 rounded cursor-pointer border transition-colors ${data.tags.includes(tag) ? 'bg-[var(--accent)] text-white border-[var(--accent)]' : 'bg-[var(--input-bg)] border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)]'}`}
+                                                    onClick={() => toggleTag(tag)}
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

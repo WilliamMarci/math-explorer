@@ -220,7 +220,8 @@
     margin-top: 12px; 
     padding-top: 8px; 
     border-top: 1px dashed var(--border); 
-    width: 100%;
+    width: 0;
+    min-width: 100%;
 }
 
 .node-note .markdown-body { 

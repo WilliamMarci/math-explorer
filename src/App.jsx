@@ -74,6 +74,11 @@ const App = () => {
         'toggleViewMode': 'e'
     });
 
+    const [isModified, setIsModified] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+    const [fileHandle, setFileHandle] = useState(null);
+
     const [settings, setSettings] = useState(() => {
         const saved = localStorage.getItem('mathmap_settings');
         return saved ? JSON.parse(saved) : { 
@@ -165,6 +170,7 @@ const App = () => {
     useEffect(() => { sceneLibraryRef.current = sceneLibrary; }, [sceneLibrary]);
 
     const saveHistory = useCallback(() => {
+        setIsModified(true);
         pushState({
             library: JSON.parse(JSON.stringify(sceneLibraryRef.current)),
             nodes: graphData.current.nodes.map(n => ({ ...n })),
@@ -688,7 +694,11 @@ const App = () => {
 
     // Auto-save
     useEffect(() => {
-        const timer = setTimeout(() => {
+        if (!autoSaveEnabled) return;
+        if (!isModified) return; // Don't auto-save if not modified
+
+        const timer = setTimeout(async () => {
+            setIsSaving(true);
             const data = {
                 library: sceneLibrary,
                 scene: {
@@ -697,41 +707,240 @@ const App = () => {
                     expandedState
                 }
             };
+            
+            // Save to local storage
             localStorage.setItem('mathmap_autosave', JSON.stringify(data));
+            
+            // Save to file if handle exists
+            if (fileHandle) {
+                try {
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(JSON.stringify(data, null, 2));
+                    await writable.close();
+                    setIsModified(false); // Reset modified flag after successful file save
+                } catch (err) {
+                    console.error("Auto-save to file failed", err);
+                }
+            }
+            
+            setIsSaving(false);
         }, 2000);
         return () => clearTimeout(timer);
-    }, [sceneLibrary, expandedState, nodes, links]); // Debounced auto-save
+    }, [sceneLibrary, expandedState, nodes, links, autoSaveEnabled, isModified, fileHandle]); // Debounced auto-save
 
-    const handleImport = (e) => {
-        const file = e.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            try {
-                const data = JSON.parse(ev.target.result);
-                if (data.scene) {
-                    // Load Scene
-                    setExpandedState(data.scene.expandedState || {});
-                    graphData.current.nodes = data.scene.nodes; 
-                    graphData.current.links = data.scene.links;
-                    
-                    // Load scene content into sceneLibrary
-                    if (data.library) {
-                        setSceneLibrary(data.library);
-                    }
-                    
-                    updateSimulation();
-                    console.log(I18N[settings.lang].sceneLoaded || "Scene loaded");
-                } else if (data.library) {
-                    // Load Library (fallback if user selects library file via this input)
-                    setUserLibrary(prev => ({ ...prev, ...data.library }));
-                    console.log(I18N[settings.lang].libraryLoaded || "Library loaded");
+    const handleOpenScene = async () => {
+        if (isModified) {
+            setAlertModal({
+                isOpen: true,
+                title: I18N[settings.lang].openScene || "Open Scene",
+                message: I18N[settings.lang].unsavedChanges || "You have unsaved changes. Continue?",
+                isConfirm: true,
+                onConfirm: () => {
+                    performOpenScene();
+                    setAlertModal(prev => ({ ...prev, isOpen: false }));
                 }
-            } catch (err) { 
-                console.error("Import error:", err);
-                setAlertModal({ isOpen: true, title: I18N[settings.lang].error || "Error", message: I18N[settings.lang].invalidFile || "Invalid MathMap file" }); 
+            });
+        } else {
+            performOpenScene();
+        }
+    };
+
+    const performOpenScene = async () => {
+        if (window.showOpenFilePicker) {
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'MathMap File',
+                        accept: {'application/json': ['.mathmap', '.json']}
+                    }],
+                    multiple: false
+                });
+                const file = await handle.getFile();
+                const text = await file.text();
+                loadSceneData(text);
+                setFileHandle(handle);
+            } catch (err) {
+                // Cancelled or error
             }
-        };
-        reader.readAsText(file);
+        } else {
+            // Fallback to input
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.mathmap,.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    loadSceneData(ev.target.result);
+                    setFileHandle(null); // No handle for input
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+    };
+
+    const loadSceneData = (jsonString) => {
+        try {
+            const data = JSON.parse(jsonString);
+            if (data.scene) {
+                setExpandedState(data.scene.expandedState || {});
+                graphData.current.nodes = data.scene.nodes; 
+                graphData.current.links = data.scene.links;
+                if (data.library) setSceneLibrary(data.library);
+                updateSimulation();
+                setIsModified(false);
+            } else if (data.library) {
+                setUserLibrary(prev => ({ ...prev, ...data.library }));
+            }
+        } catch (err) {
+            setAlertModal({ isOpen: true, title: I18N[settings.lang].error || "Error", message: I18N[settings.lang].invalidFile || "Invalid MathMap file" });
+        }
+    };
+
+    const handleImport = handleOpenScene; // Alias for compatibility if needed
+
+    const [confirmAction, setConfirmAction] = useState(null);
+
+    // ...
+
+    const getSceneData = useCallback(() => ({
+        library: sceneLibrary,
+        scene: {
+            nodes: graphData.current.nodes.map(n => ({ id: n.id, contentId: n.contentId, x: n.x, y: n.y, fx: n.fx, fy: n.fy, color: n.color })),
+            links: graphData.current.links.map(l => ({ source: l.source.id || l.source, target: l.target.id || l.target })),
+            expandedState
+        }
+    }), [sceneLibrary, expandedState, graphData]);
+
+    const performNewScene = useCallback(async () => {
+        try {
+            const response = await fetch('/template.mathmap');
+            let data;
+            if (response.ok) {
+                data = await response.json();
+            } else {
+                data = {
+                    scene: {
+                        nodes: [{ id: 'root', type: 'default', x: 0, y: 0, contentId: 'root' }],
+                        links: [],
+                        expandedState: {}
+                    },
+                    library: { 'root': { title: 'Root', type: 'default' } }
+                };
+            }
+
+            const newNodes = data.scene?.nodes || data.nodes || [];
+            const newLinks = data.scene?.links || data.edges || [];
+            const newLibrary = data.library || {};
+            const newExpandedState = data.scene?.expandedState || {};
+
+            // Critical: Update graphData ref BEFORE simulation restart
+            graphData.current.nodes = newNodes.map(n => ({ ...n }));
+            graphData.current.links = newLinks.map(l => ({ ...l }));
+
+            setNodes(newNodes);
+            setLinks(newLinks);
+            setSceneLibrary(newLibrary);
+            setExpandedState(newExpandedState);
+            setTransform({ k: 1, x: 0, y: 0 });
+            setFileHandle(null);
+            setIsModified(false);
+            
+            // Clear history
+            // Note: useHistory doesn't expose clear(), but pushing a new state effectively resets if we consider it the new baseline? 
+            // No, undo stack remains. We might want to reset history here but the hook doesn't support it.
+            // For now, just update simulation.
+            
+            updateSimulation();
+
+        } catch (e) {
+            console.error("Failed to load template", e);
+            // Fallback
+            const newNodes = [{ id: 'root', type: 'default', x: 0, y: 0, contentId: 'root' }];
+            const newLinks = [];
+            const newLibrary = { 'root': { title: 'Root', type: 'default' } };
+            
+            graphData.current.nodes = newNodes.map(n => ({ ...n }));
+            graphData.current.links = newLinks.map(l => ({ ...l }));
+            
+            setNodes(newNodes);
+            setLinks(newLinks);
+            setSceneLibrary(newLibrary);
+            setFileHandle(null);
+            setIsModified(false);
+            updateSimulation();
+        }
+    }, [setNodes, setLinks, setSceneLibrary, setExpandedState, setTransform, updateSimulation, graphData]);
+
+    const handleNewScene = () => {
+        if (isModified) {
+            setAlertModal({
+                isOpen: true,
+                title: I18N[settings.lang].newScene,
+                message: I18N[settings.lang].unsavedChanges,
+                isConfirm: true,
+                onConfirm: () => {
+                    performNewScene();
+                    setAlertModal(prev => ({ ...prev, isOpen: false }));
+                }
+            });
+        } else {
+            performNewScene();
+        }
+    };
+
+    const handleSaveAsScene = async () => {
+        try {
+            const data = getSceneData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        types: [{
+                            description: 'MathMap File',
+                            accept: {'application/json': ['.mathmap', '.json']}
+                        }],
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(JSON.stringify(data, null, 2));
+                    await writable.close();
+                    setFileHandle(handle);
+                    setIsModified(false);
+                } catch (err) {
+                    // User cancelled
+                }
+            } else {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'scene.mathmap';
+                a.click();
+                URL.revokeObjectURL(url);
+                setIsModified(false);
+            }
+        } catch (err) {
+            console.error("Save As failed", err);
+        }
+    };
+
+    const handleSaveScene = async () => {
+        if (fileHandle) {
+            try {
+                const writable = await fileHandle.createWritable();
+                const data = getSceneData();
+                await writable.write(JSON.stringify(data, null, 2));
+                await writable.close();
+                setIsModified(false);
+            } catch (err) {
+                console.error("Save failed", err);
+                handleSaveAsScene();
+            }
+        } else {
+            handleSaveAsScene();
+        }
     };
 
     return (
@@ -757,6 +966,12 @@ const App = () => {
                 selectedNodeIds={selectedNodeIds}
                 setSelectedNodeIds={setSelectedNodeIds}
                 icons={icons}
+                
+                // File Operations & State
+                undo={handleUndo} redo={handleRedo} canUndo={canUndo} canRedo={canRedo}
+                autoSaveEnabled={autoSaveEnabled} setAutoSaveEnabled={setAutoSaveEnabled}
+                onNewScene={handleNewScene} onSaveScene={handleSaveScene} onSaveAsScene={handleSaveAsScene}
+                isModified={isModified} isSaving={isSaving}
             />
             
             <ExportModal 
@@ -769,12 +984,15 @@ const App = () => {
             <ConfirmModal
                 isOpen={alertModal.isOpen}
                 onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
-                onConfirm={() => setAlertModal({ ...alertModal, isOpen: false })}
+                onConfirm={() => {
+                    if (alertModal.onConfirm) alertModal.onConfirm();
+                    else setAlertModal({ ...alertModal, isOpen: false });
+                }}
                 title={alertModal.title}
                 message={alertModal.message}
                 icons={icons}
                 // Hide cancel button for alert style
-                isAlert={true}
+                isAlert={!alertModal.isConfirm}
                 lang={settings.lang}
                 I18N={I18N}
             />

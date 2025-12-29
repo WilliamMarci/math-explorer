@@ -342,7 +342,7 @@ const LibraryPanel = ({
                 )}
                 
                 {/* Header */}
-                <div className={`ui-header border-b border-[var(--border)] flex justify-between items-center pr-2 ${!isOpen ? "bg-[var(--panel-bg)]" : ""}`} onClick={() => setIsOpen(!isOpen)}>
+                <div className={`ui-header border-b border-[var(--border)] flex justify-between items-center pr-2 bg-[var(--panel-bg)]`} onClick={() => setIsOpen(!isOpen)}>
                     <div className={`flex items-center gap-2 cursor-pointer transition-colors h-full w-full justify-end`}>
                         {isOpen && (
                             <div className="flex items-center gap-2">

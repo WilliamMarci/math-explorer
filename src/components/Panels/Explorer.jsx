@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '../UI/Icon';
 import { usePanelResize } from '../../hooks/usePanelResize';
@@ -66,6 +66,28 @@ const GraphSidebar = React.memo(({ items, links, nodes, rowHeight = 32 }) => {
     );
 });
 
+
+const ExplorerItem = React.memo(({ 
+    item, index, isSelected, hoverClass, icons, t, searchTerm,
+    onDragStart, onDragEnter, onDragEnd, onClick, onContextMenu 
+}) => {
+    return (
+        <div draggable={!searchTerm} 
+            onDragStart={(e) => onDragStart(e, index)} 
+            onDragEnter={(e) => onDragEnter(e, index)} 
+            onDragEnd={onDragEnd} 
+            onDragOver={(e) => e.preventDefault()}
+            className={`group flex items-center gap-2 pl-10 pr-2 h-[32px] cursor-pointer transition-colors ${isSelected ? 'bg-blue-500/20' : hoverClass}`}
+            onClick={(e) => onClick(e, item)}
+            onContextMenu={(e) => onContextMenu(e, item)}
+        >
+            <div className={`flex-1 min-w-0 flex items-center justify-between ${!item.activeNode ? 'opacity-50 grayscale' : ''}`}>
+                <div className="truncate text-xs font-medium leading-tight select-none text-[var(--text)]">{item.content.title || "Untitled"}</div>
+                {item.activeNode && item.isPinned && <Icon icon={icons?.unpin} className="text-[10px] text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity" />}
+            </div>
+        </div>
+    );
+});
 
 const Explorer = ({ 
     nodes, library, sceneLibrary, links, 
@@ -142,23 +164,30 @@ const Explorer = ({
         return items;
     }, [nodes, library, sceneLibrary, nodeOrder, searchTerm]);
 
+    // Refs for stable callbacks
+    const selectedNodeIdsRef = useRef(selectedNodeIds);
+    const explorerItemsRef = useRef(explorerItems);
+
+    useEffect(() => { selectedNodeIdsRef.current = selectedNodeIds; }, [selectedNodeIds]);
+    useEffect(() => { explorerItemsRef.current = explorerItems; }, [explorerItems]);
+
     // Drag and Drop Handlers
     const dragItem = useRef(null);
     const dragOverItem = useRef(null);
 
-    const handleDragStart = (e, position) => {
+    const handleDragStart = useCallback((e, position) => {
         dragItem.current = position;
         e.dataTransfer.effectAllowed = 'move';
         // e.dataTransfer.setDragImage(new Image(), 0, 0); // Optional: Hide ghost image
-    };
+    }, []);
 
-    const handleDragEnter = (e, position) => {
+    const handleDragEnter = useCallback((e, position) => {
         dragOverItem.current = position;
-    };
+    }, []);
 
-    const handleDragEnd = (e) => {
+    const handleDragEnd = useCallback((e) => {
         if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
-            const copy = [...explorerItems];
+            const copy = [...explorerItemsRef.current];
             const itemToMove = copy[dragItem.current];
             
             // Remove from old pos
@@ -175,9 +204,9 @@ const Explorer = ({
         }
         dragItem.current = null;
         dragOverItem.current = null;
-    };
+    }, [setNodeOrder]);
 
-    const handleItemClick = (e, item) => {
+    const handleItemClick = useCallback((e, item) => {
         if (!item.activeNode) return;
         
         // Custom Double Click Logic
@@ -189,28 +218,28 @@ const Explorer = ({
         }
         item.lastClickTime = now;
 
+        const currentSelectedIds = selectedNodeIdsRef.current;
+        const currentItems = explorerItemsRef.current;
+
         if (e.ctrlKey || e.metaKey) {
             // Toggle selection
-            if (selectedNodeIds.includes(item.activeNode.id)) {
+            if (currentSelectedIds.includes(item.activeNode.id)) {
                 setSelectedNodeIds(prev => prev.filter(id => id !== item.activeNode.id));
             } else {
                 setSelectedNodeIds(prev => [...prev, item.activeNode.id]);
             }
         } else if (e.shiftKey) {
-            // Range selection (simplified: just add to selection for now, or implement range if needed)
-            // Implementing range selection requires knowing the index.
-            // Let's just add for now or do nothing special other than add.
-            // Ideally we find the last selected index and select everything in between.
-            if (selectedNodeIds.length > 0) {
-                const lastSelectedId = selectedNodeIds[selectedNodeIds.length - 1];
-                const lastIdx = explorerItems.findIndex(i => i.activeNode && i.activeNode.id === lastSelectedId);
-                const currentIdx = explorerItems.findIndex(i => i.cId === item.cId);
+            // Range selection
+            if (currentSelectedIds.length > 0) {
+                const lastSelectedId = currentSelectedIds[currentSelectedIds.length - 1];
+                const lastIdx = currentItems.findIndex(i => i.activeNode && i.activeNode.id === lastSelectedId);
+                const currentIdx = currentItems.findIndex(i => i.cId === item.cId);
                 
                 if (lastIdx !== -1 && currentIdx !== -1) {
                     const start = Math.min(lastIdx, currentIdx);
                     const end = Math.max(lastIdx, currentIdx);
-                    const rangeIds = explorerItems.slice(start, end + 1).map(i => i.activeNode?.id).filter(Boolean);
-                    const newSet = new Set([...selectedNodeIds, ...rangeIds]);
+                    const rangeIds = currentItems.slice(start, end + 1).map(i => i.activeNode?.id).filter(Boolean);
+                    const newSet = new Set([...currentSelectedIds, ...rangeIds]);
                     setSelectedNodeIds(Array.from(newSet));
                 }
             } else {
@@ -221,20 +250,22 @@ const Explorer = ({
             setSelectedNodeIds([item.activeNode.id]);
             onFocusNode(item.activeNode);
         }
-    };
+    }, [onFocusNode, setSelectedNodeIds]);
 
     // Context Menu
-    const handleContextMenu = (e, item) => {
+    const handleContextMenu = useCallback((e, item) => {
         e.preventDefault();
         e.stopPropagation();
         
+        const currentSelectedIds = selectedNodeIdsRef.current;
+
         // If item is not in selection, select it (and clear others unless ctrl)
-        if (item.activeNode && !selectedNodeIds.includes(item.activeNode.id)) {
+        if (item.activeNode && !currentSelectedIds.includes(item.activeNode.id)) {
              setSelectedNodeIds([item.activeNode.id]);
         }
         
         setContextMenu({ x: e.clientX, y: e.clientY, item });
-    };
+    }, [setSelectedNodeIds]);
 
     const handlePanelContextMenu = (e) => {
         e.preventDefault();
@@ -422,16 +453,21 @@ const Explorer = ({
                             {explorerItems.map((item, index) => {
                                 const isSelected = item.activeNode && selectedNodeIds.includes(item.activeNode.id);
                                 return (
-                                <div key={item.cId} draggable={!searchTerm} onDragStart={(e) => handleDragStart(e, index)} onDragEnter={(e) => handleDragEnter(e, index)} onDragEnd={handleDragEnd} onDragOver={(e) => e.preventDefault()}
-                                    className={`group flex items-center gap-2 pl-10 pr-2 h-[32px] cursor-pointer transition-colors ${isSelected ? 'bg-blue-500/20' : hoverClass}`}
-                                    onClick={(e) => handleItemClick(e, item)}
-                                    onContextMenu={(e) => handleContextMenu(e, item)}
-                                >
-                                    <div className={`flex-1 min-w-0 flex items-center justify-between ${!item.activeNode ? 'opacity-50 grayscale' : ''}`}>
-                                        <div className="truncate text-xs font-medium leading-tight select-none text-[var(--text)]">{item.content.title || "Untitled"}</div>
-                                        {item.activeNode && item.isPinned && <Icon icon={icons?.unpin} className="text-[10px] text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity" />}
-                                    </div>
-                                </div>
+                                    <ExplorerItem 
+                                        key={item.cId}
+                                        item={item}
+                                        index={index}
+                                        isSelected={isSelected}
+                                        hoverClass={hoverClass}
+                                        icons={icons}
+                                        t={t}
+                                        searchTerm={searchTerm}
+                                        onDragStart={handleDragStart}
+                                        onDragEnter={handleDragEnter}
+                                        onDragEnd={handleDragEnd}
+                                        onClick={handleItemClick}
+                                        onContextMenu={handleContextMenu}
+                                    />
                                 );
                             })}
                             {explorerItems.length === 0 && <div className="text-center opacity-40 text-xs py-4 pl-8">{t.noNodes || "No nodes found"}</div>}

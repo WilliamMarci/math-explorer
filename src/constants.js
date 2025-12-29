@@ -35,7 +35,10 @@ export const I18N = {
         viewModeReadOnly: "View Mode (Read Only)", editMode: "Edit Mode",
         deleteConfirmation: "Are you sure you want to delete",
         confirm: "Confirm", ok: "OK", error: "Error", invalidFile: "Invalid MathMap file",
-        importFailed: "Import failed", sceneLoaded: "Scene loaded", libraryLoaded: "Library loaded"
+        importFailed: "Import failed", sceneLoaded: "Scene loaded", libraryLoaded: "Library loaded",
+        file: "File", undo: "Undo", redo: "Redo", autoSave: "Auto Save",
+        newScene: "New Scene", openScene: "Open Scene", saveScene: "Save Scene", saveAsScene: "Save As Scene",
+        modified: "Modified", unsavedChanges: "Unsaved changes", close: "Close", saving: "Saving..."
     },
     zh: {
         explorer: "导航", settings: "设置", newNode: "新建节点", sceneOutline: "场景大纲",
@@ -71,7 +74,10 @@ export const I18N = {
         viewModeReadOnly: "视图模式 (只读)", editMode: "编辑模式",
         deleteConfirmation: "确定要删除",
         confirm: "确认", ok: "确定", error: "错误", invalidFile: "无效的 MathMap 文件",
-        importFailed: "导入失败", sceneLoaded: "场景已加载", libraryLoaded: "库已加载"
+        importFailed: "导入失败", sceneLoaded: "场景已加载", libraryLoaded: "库已加载",
+        file: "文件", undo: "撤销", redo: "重做", autoSave: "自动保存",
+        newScene: "新建场景", openScene: "打开场景", saveScene: "保存场景", saveAsScene: "另存为场景",
+        modified: "已修改", unsavedChanges: "未保存的更改", close: "关闭", saving: "保存中..."
     },
     fr: {
         explorer: "Explorateur", settings: "Paramètres", newNode: "Nouveau Nœud", sceneOutline: "PLAN DE SCÈNE",
@@ -107,7 +113,10 @@ export const I18N = {
         viewModeReadOnly: "Mode Vue (Lecture seule)", editMode: "Mode Édition",
         deleteConfirmation: "Êtes-vous sûr de vouloir supprimer",
         confirm: "Confirmer", ok: "OK", error: "Erreur", invalidFile: "Fichier MathMap invalide",
-        importFailed: "Échec de l'importation", sceneLoaded: "Scène chargée", libraryLoaded: "Bibliothèque chargée"
+        importFailed: "Échec de l'importation", sceneLoaded: "Scène chargée", libraryLoaded: "Bibliothèque chargée",
+        file: "Fichier", undo: "Annuler", redo: "Rétablir", autoSave: "Sauvegarde auto",
+        newScene: "Nouvelle Scène", openScene: "Ouvrir Scène", saveScene: "Enregistrer Scène", saveAsScene: "Enregistrer sous...",
+        modified: "Modifié", unsavedChanges: "Modifications non enregistrées", close: "Fermer", saving: "Enregistrement..."
     },
     jp: {
         explorer: "エクスプローラー", settings: "設定", newNode: "新しいノード", sceneOutline: "シーン概要",
@@ -143,7 +152,10 @@ export const I18N = {
         viewModeReadOnly: "表示モード (読み取り専用)", editMode: "編集モード",
         deleteConfirmation: "本当に削除しますか",
         confirm: "確認", ok: "OK", error: "エラー", invalidFile: "無効な MathMap ファイル",
-        importFailed: "インポートに失敗しました", sceneLoaded: "シーンが読み込まれました", libraryLoaded: "ライブラリが読み込まれました"
+        importFailed: "インポートに失敗しました", sceneLoaded: "シーンが読み込まれました", libraryLoaded: "ライブラリが読み込まれました",
+        file: "ファイル", undo: "元に戻す", redo: "やり直し", autoSave: "自動保存",
+        newScene: "新規シーン", openScene: "シーンを開く", saveScene: "シーンを保存", saveAsScene: "名前を付けて保存",
+        modified: "変更あり", unsavedChanges: "未保存の変更", close: "閉じる", saving: "保存中..."
     },
 };
 

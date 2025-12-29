@@ -432,6 +432,26 @@ export const useGraphActions = ({
             n.y = n.fy;
         });
 
+        if (type === 'distribute_h') {
+            selectedNodes.sort((a, b) => a.x - b.x);
+            const totalWidth = maxX - minX;
+            const gap = totalWidth / (selectedNodes.length - 1);
+            selectedNodes.forEach((n, i) => {
+                n.fx = minX + i * gap;
+                n.x = n.fx;
+                n.fy = n.y; // Pin Y as well to stop physics
+            });
+        } else if (type === 'distribute_v') {
+            selectedNodes.sort((a, b) => a.y - b.y);
+            const totalHeight = maxY - minY;
+            const gap = totalHeight / (selectedNodes.length - 1);
+            selectedNodes.forEach((n, i) => {
+                n.fy = minY + i * gap;
+                n.y = n.fy;
+                n.fx = n.x; // Pin X as well to stop physics
+            });
+        }
+
         updateSimulation();
         if (saveHistory) setTimeout(saveHistory, 50);
     }, [graphData, updateSimulation, saveHistory]);

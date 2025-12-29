@@ -44,7 +44,9 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
             alignTop: "Top",
             alignBottom: "Bottom",
             alignCenterH: "Center H",
-            alignCenterV: "Center V"
+            alignCenterV: "Center V",
+            distributeH: "Distribute H",
+            distributeV: "Distribute V"
         },
         zh: {
             new: "新建节点",
@@ -57,13 +59,15 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
             edit: "编辑内容",
             hide: "隐藏分支",
             delete: "删除",
-            align: "对齐",
+            align: "对齐与分布",
             alignLeft: "左对齐",
             alignRight: "右对齐",
             alignTop: "顶对齐",
             alignBottom: "底对齐",
             alignCenterH: "水平居中",
-            alignCenterV: "垂直居中"
+            alignCenterV: "垂直居中",
+            distributeH: "水平分布",
+            distributeV: "垂直分布"
         }
     };
 
@@ -120,24 +124,31 @@ const ContextMenu = ({ x, y, type, visible, onAction, onClose, hasClipboard, lan
                             <div className="context-menu-header text-xs font-bold px-3 py-1 text-gray-500 uppercase tracking-wider">
                                 {labels.align}
                             </div>
-                            <div className="grid grid-cols-2 gap-1 px-2 pb-2">
+                            <div className="grid grid-cols-4 gap-1 px-2 pb-2">
                                 <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_left')} title={labels.alignLeft}>
                                     <Icon icon={icons?.alignLeft} />
-                                </button>
-                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_right')} title={labels.alignRight}>
-                                    <Icon icon={icons?.alignRight} />
-                                </button>
-                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_top')} title={labels.alignTop}>
-                                    <Icon icon={icons?.alignTop} />
-                                </button>
-                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_bottom')} title={labels.alignBottom}>
-                                    <Icon icon={icons?.alignBottom} />
                                 </button>
                                 <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_center_h')} title={labels.alignCenterH}>
                                     <Icon icon={icons?.alignCenterH} />
                                 </button>
-                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_center_v')} title={labels.alignVertically}>
+                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_right')} title={labels.alignRight}>
+                                    <Icon icon={icons?.alignRight} />
+                                </button>
+                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('distribute_h')} title={labels.distributeH}>
+                                    <Icon icon={icons?.distributeH} />
+                                </button>
+
+                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_top')} title={labels.alignTop}>
+                                    <Icon icon={icons?.alignTop} />
+                                </button>
+                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_center_v')} title={labels.alignCenterV}>
                                     <Icon icon={icons?.alignCenterV} />
+                                </button>
+                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('align_bottom')} title={labels.alignBottom}>
+                                    <Icon icon={icons?.alignBottom} />
+                                </button>
+                                <button className="p-1 hover:bg-gray-100 rounded text-xs border" onClick={() => onAction('distribute_v')} title={labels.distributeV}>
+                                    <Icon icon={icons?.distributeV} />
                                 </button>
                             </div>
                             <div className="context-divider"></div>

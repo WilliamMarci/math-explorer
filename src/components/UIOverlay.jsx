@@ -17,7 +17,11 @@ const UIOverlay = ({
     viewMode, setViewMode, 
     shortcuts, setShortcuts,
     selectedNodeIds, setSelectedNodeIds,
-    icons
+    icons,
+    undo, redo, canUndo, canRedo,
+    autoSaveEnabled, setAutoSaveEnabled,
+    onNewScene, onSaveScene, onSaveAsScene,
+    isModified, isSaving
 }) => {
     const t = I18N[settings.lang];
     const isDarkTheme = ['blackboard', 'blueprint'].includes(settings.theme);
@@ -33,6 +37,10 @@ const UIOverlay = ({
                 labelType={settings.minimapLabelType} 
                 library={library} 
                 settings={settings}
+                isModified={isModified}
+                isSaving={isSaving}
+                onSave={onSaveScene}
+                t={t}
             />
 
             <Explorer 
@@ -81,6 +89,9 @@ const UIOverlay = ({
                 onExport={onExport} 
                 onImport={onImport}
                 icons={icons}
+                undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
+                autoSaveEnabled={autoSaveEnabled} setAutoSaveEnabled={setAutoSaveEnabled}
+                onNewScene={onNewScene} onSaveScene={onSaveScene} onSaveAsScene={onSaveAsScene}
             />
         </>
     );

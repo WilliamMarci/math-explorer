@@ -32,6 +32,8 @@ export const ICONS = {
     alignBottom: { type: 'font', value: 'ri-align-bottom' },
     alignCenterH: { type: 'font', value: 'ri-align-center' },
     alignCenterV: { type: 'font', value: 'ri-align-vertically' },
+    distributeH: { type: 'font', value: 'ri-align-justify' }, // Approximation
+    distributeV: { type: 'font', value: 'ri-align-vertically' }, // Approximation
     customize: { type: 'font', value: 'ri-settings-3-fill' },
     list: { type: 'font', value: 'ri-list-check' },
     grid: { type: 'font', value: 'ri-grid-fill' },
@@ -40,7 +42,12 @@ export const ICONS = {
     file: { type: 'font', value: 'ri-file-line' },
     folderOpen: { type: 'font', value: 'ri-folder-open-line' },
     arrowRight: { type: 'font', value: 'ri-arrow-right-s-line' },
-    code: { type: 'font', value: 'ri-code-line' }
+    code: { type: 'font', value: 'ri-code-line' },
+    undo: { type: 'font', value: 'ri-arrow-go-back-line' },
+    redo: { type: 'font', value: 'ri-arrow-go-forward-line' },
+    save: { type: 'font', value: 'ri-save-line' },
+    new: { type: 'font', value: 'ri-file-add-line' },
+    open: { type: 'font', value: 'ri-folder-open-line' }
 };
 
 export const PIXEL_ICONS = {
@@ -77,6 +84,8 @@ export const PIXEL_ICONS = {
     alignBottom: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
     alignCenterH: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
     alignCenterV: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
+    distributeH: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
+    distributeV: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
     customize: { type: 'image', value: '/src/assets/svgs/pixel-settings.svg' },
     list: { type: 'image', value: '/src/assets/svgs/pixel-list.svg' },
     grid: { type: 'image', value: '/src/assets/svgs/pixel-menu.svg' },
@@ -84,6 +93,11 @@ export const PIXEL_ICONS = {
     folder: { type: 'image', value: '/src/assets/svgs/pixel-folder.svg' },
     folderOpen: { type: 'image', value: '/src/assets/svgs/pixel-folder-open.svg' },
     arrowRight: { type: 'image', value: '/src/assets/svgs/pixel-arrow-right.svg' },
+    undo: { type: 'image', value: '/src/assets/svgs/pixel-arrow-down.svg' }, // Placeholder
+    redo: { type: 'image', value: '/src/assets/svgs/pixel-arrow-right.svg' },
+    save: { type: 'image', value: '/src/assets/svgs/pixel-download.svg' },
+    new: { type: 'image', value: '/src/assets/svgs/pixel-add.svg' },
+    open: { type: 'image', value: '/src/assets/svgs/pixel-upload.svg' },
     file: { type: 'image', value: '/src/assets/svgs/pixel-file.svg' },
     code: { type: 'image', value: '/src/assets/svgs/pixel-file.svg' }
 };

@@ -33,6 +33,8 @@ export const useContextMenuActions = ({
             case 'align_bottom': alignNodes(selectedNodeIds, 'bottom'); break;
             case 'align_center_h': alignNodes(selectedNodeIds, 'center_h'); break;
             case 'align_center_v': alignNodes(selectedNodeIds, 'center_v'); break;
+            case 'distribute_h': alignNodes(selectedNodeIds, 'distribute_h'); break;
+            case 'distribute_v': alignNodes(selectedNodeIds, 'distribute_v'); break;
 
             case 'new':
                 // Create new node at mouse position if available, else center

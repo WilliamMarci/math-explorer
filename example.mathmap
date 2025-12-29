@@ -1,9 +1,4 @@
 {
-  "metadata": {
-    "name": "solid_state_physics_example",
-    "description": "Solid State Physics example: From Hamiltonian to Quantum Harmonic Oscillator solution in a Crystal Lattice.",
-    "generatedAt": "2025-12-26T04:40:00.000Z"
-  },
   "library": {
     "hamiltonian": {
       "title": "Hamiltonian Operator",
@@ -163,27 +158,109 @@
   },
   "scene": {
     "nodes": [
-      { "id": "n_hamiltonian", "contentId": "hamiltonian", "x": 400, "y": 100, "color": "#1e293b" },
-      { "id": "n_kinetic", "contentId": "kinetic_term", "x": 200, "y": 250, "color": "#ef4444" },
-      { "id": "n_potential", "contentId": "potential_term", "x": 600, "y": 250, "color": "#3b82f6" },
-      { "id": "n_crystal", "contentId": "crystal_structure", "x": 800, "y": 250, "color": "#10b981" },
-      { "id": "n_schrodinger", "contentId": "schrodinger_eq", "x": 400, "y": 400, "color": "#8b5cf6" },
-      { "id": "n_wavefunction", "contentId": "wavefunction", "x": 400, "y": 550, "color": "#d946ef" },
-      { "id": "n_hermite", "contentId": "hermite_poly", "x": 200, "y": 700, "color": "#f59e0b" },
-      { "id": "n_gaussian", "contentId": "gaussian_term", "x": 600, "y": 700, "color": "#ec4899" },
-      { "id": "n_pot_plot", "contentId": "potential_plot", "x": 600, "y": 350, "color": "#3b82f6" },
-      { "id": "n_psi_plot", "contentId": "psi_plot", "x": 600, "y": 550, "color": "#8b5cf6" }
+      {
+        "id": "n_hamiltonian",
+        "contentId": "hamiltonian",
+        "x": 347.9806584140389,
+        "y": -5.052271630483253,
+        "fx": null,
+        "fy": null,
+        "color": "#1e293b"
+      },
+      {
+        "id": "n_potential",
+        "contentId": "potential_term",
+        "x": 493.96296195467386,
+        "y": -246.31974290971345,
+        "color": "#3b82f6"
+      },
+      {
+        "id": "n_crystal",
+        "contentId": "crystal_structure",
+        "x": 764.0226237878277,
+        "y": -327.50951445021855,
+        "color": "#10b981"
+      },
+      {
+        "id": "n_schrodinger",
+        "contentId": "schrodinger_eq",
+        "x": 182.67100624351835,
+        "y": 223.4034853014911,
+        "color": "#8b5cf6"
+      },
+      {
+        "id": "n_wavefunction",
+        "contentId": "wavefunction",
+        "x": 406.785428239672,
+        "y": 394.56509455694544,
+        "fx": null,
+        "fy": null,
+        "color": "#d946ef"
+      },
+      {
+        "id": "n_hermite",
+        "contentId": "hermite_poly",
+        "x": 205.0995651998435,
+        "y": 591.6618992271942,
+        "color": "#f59e0b"
+      },
+      {
+        "id": "n_gaussian",
+        "contentId": "gaussian_term",
+        "x": 476.61518502418625,
+        "y": 667.841083861237,
+        "color": "#ec4899"
+      },
+      {
+        "id": "n_pot_plot",
+        "contentId": "potential_plot",
+        "x": 690.9339241355626,
+        "y": -44.456158063192454,
+        "fx": null,
+        "fy": null,
+        "color": "#3b82f6"
+      },
+      {
+        "id": "n_psi_plot",
+        "contentId": "psi_plot",
+        "x": 678.3032587238087,
+        "y": 470.7363995204436,
+        "color": "#8b5cf6"
+      }
     ],
     "links": [
-      { "source": "n_hamiltonian", "target": "n_kinetic" },
-      { "source": "n_hamiltonian", "target": "n_potential" },
-      { "source": "n_potential", "target": "n_crystal" },
-      { "source": "n_potential", "target": "n_pot_plot" },
-      { "source": "n_hamiltonian", "target": "n_schrodinger" },
-      { "source": "n_schrodinger", "target": "n_wavefunction" },
-      { "source": "n_wavefunction", "target": "n_hermite" },
-      { "source": "n_wavefunction", "target": "n_gaussian" },
-      { "source": "n_wavefunction", "target": "n_psi_plot" }
+      {
+        "source": "n_hamiltonian",
+        "target": "n_potential"
+      },
+      {
+        "source": "n_potential",
+        "target": "n_crystal"
+      },
+      {
+        "source": "n_potential",
+        "target": "n_pot_plot"
+      },
+      {
+        "source": "n_hamiltonian",
+        "target": "n_schrodinger"
+      },
+      {
+        "source": "n_schrodinger",
+        "target": "n_wavefunction"
+      },
+      {
+        "source": "n_wavefunction",
+        "target": "n_hermite"
+      },
+      {
+        "source": "n_wavefunction",
+        "target": "n_gaussian"
+      },
+      {
+        "source": "n_wavefunction",
+        "target": "n_psi_plot"
+      }
     ],
     "expandedState": {}
   }

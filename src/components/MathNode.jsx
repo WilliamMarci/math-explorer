@@ -58,7 +58,7 @@ const MathNode = ({
             style={{ 
                 transform: `translate(${node.x}px, ${node.y}px) translate(-50%, -50%)`,
                 '--node-color': baseColor,
-                zIndex: isSelected ? 10 : undefined // Bring selected to front?
+                zIndex: isSelected ? 100 : undefined // Bring selected to front
             }} 
             onMouseDown={(e) => onDragStart(e, node)}
             onContextMenu={(e) => onContextMenu(e, node)}
@@ -66,7 +66,7 @@ const MathNode = ({
             onMouseEnter={() => onNodeHover && onNodeHover(node.id)}
             onMouseLeave={() => onNodeHover && onNodeHover(null)}
         >
-            <div id={`math-card-${node.id}`} className={`math-card group ${isPinned ? 'pinned' : ''} ${isMinimal ? 'minimal-mode' : ''} node-type-${nodeType} ${isSelected ? 'ring-2 ring-blue-500 shadow-lg' : ''}`}>
+            <div id={`math-card-${node.id}`} className={`math-card group ${isPinned ? 'pinned' : ''} ${isMinimal ? 'minimal-mode' : ''} node-type-${nodeType} ${isSelected ? 'ring-4 ring-blue-500 ring-offset-2 shadow-xl' : ''}`}>
                 {/* Highlights */}
                 {highlights.map((h, i) => (
                     <div 

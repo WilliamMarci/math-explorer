@@ -2,7 +2,12 @@ import React, { useState } from 'react';
 import SettingsPanel from './Panels/SettingsPanel';
 import Icon from './UI/Icon';
 
-const ControlPanel = ({ settings, setSettings, shortcuts, setShortcuts, t, onExport, onImport, icons }) => {
+const ControlPanel = ({ 
+    settings, setSettings, shortcuts, setShortcuts, t, onExport, onImport, icons,
+    undo, redo, canUndo, canRedo,
+    autoSaveEnabled, setAutoSaveEnabled,
+    onNewScene, onSaveScene, onSaveAsScene
+}) => {
     const [ctrlOpen, setCtrlOpen] = useState(false);
 
     return (
@@ -17,6 +22,9 @@ const ControlPanel = ({ settings, setSettings, shortcuts, setShortcuts, t, onExp
                     onExport={onExport} 
                     onImport={onImport} 
                     icons={icons}
+                    undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
+                    autoSaveEnabled={autoSaveEnabled} setAutoSaveEnabled={setAutoSaveEnabled}
+                    onNewScene={onNewScene} onSaveScene={onSaveScene} onSaveAsScene={onSaveAsScene}
                 />
             </div>
 

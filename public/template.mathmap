@@ -1,0 +1,20 @@
+{
+  "nodes": [
+    {
+      "id": "root",
+      "contentId": "root",
+      "x": 0,
+      "y": 0,
+      "type": "default"
+    }
+  ],
+  "edges": [],
+  "library": {
+    "root": {
+      "title": "Start Here",
+      "type": "default",
+      "template": "\\text{New Scene}",
+      "segments": {}
+    }
+  }
+}
