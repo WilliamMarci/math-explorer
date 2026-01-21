@@ -1,8 +1,9 @@
-# MathMap - 可视化数学推导编辑器
+# MathMap
 
-MathMap 是一个基于节点的非线性思维导图工具，专为数学推导、物理公式解析和知识图谱构建而设计。它允许你通过 LaTeX 编写动态公式，并通过可视化连线将概念、公理和推导步骤有机地连接起来。
+MathMap 是一个基于 React 的交互式数学推导图谱编辑器。它采用节点化（Node-based）的方式组织数学概念，支持通过动态插槽将静态公式转化为可交互、可导航的知识网络。
 
-## ✨ 核心特性
+## 核心特性
+
 
 *   **LaTeX 模板引擎**：支持在 LaTeX 公式中插入动态“插槽” (`{{key}}`)，插槽可以是文本、其他节点的链接或交互式变量。
 *   **实时渲染**：所见即所得的数学公式编辑，支持复杂的数学符号。
@@ -11,7 +12,42 @@ MathMap 是一个基于节点的非线性思维导图工具，专为数学推导
 *   **力导向布局**：基于物理引擎的自动布局，支持拖拽、缩放和节点锁定。
 *   **Git 风格大纲**：左侧侧边栏提供类似 Git Graph 的线性大纲视图，方便快速导航。
 
----
+
+## 使用指南
+
+### 创建交互节点
+
+以定义 **德布罗意关系 (De Broglie Relations)** 为例：
+
+1.  **编写模板**
+    在编辑器中输入 LaTeX 模板：
+    ```latex
+    \begin{cases} p = \hbar k & \text{ {{k_rel}} } \\ E = \hbar \omega & \text{ {{w_rel}} } \end{cases}
+    ```
+
+2.  **配置片段 (Segments)**
+    系统解析出 `k_rel` 和 `w_rel` 后，进行如下配置：
+
+    *   **k_rel**:
+        *   Type: `Link`
+        *   Text: `(p \to k)`
+        *   Target: 选择或创建 `tut_plane_wave` (平面波函数节点)
+    *   **w_rel**:
+        *   Type: `Text`
+        *   Text: `(E \to \omega)`
+
+3.  **渲染结果**
+    在画布中，公式中的 `(p -> k)` 将变为可点击链接，引导用户查看平面波函数的定义，从而建立从粒子性到波动性的推导逻辑。
+
+### 节点类型规范
+
+| 类型 | 标识颜色 | 语义用途 |
+| :--- | :--- | :--- |
+| **Axiom** | Red | 公理、定律、起始假设 (如能量守恒) |
+| **Definition** | Purple | 定义式 (如平面波函数) |
+| **Derivation** | Blue | 推导过程、算子提取 (如时间/空间导数) |
+| **Theorem** | Green | 最终定理/结论 (如薛定谔方程) |
+| **Note** | Gray | 纯文本说明、背景介绍 |
 
 ## 🚀 快速开始
 
@@ -80,19 +116,14 @@ v = \frac{d {{pos}} }{d {{time}} }
 ---
 # for Developers
 
-## features
-
-### mathnode
-
-
 ## TODO
 
 - [x] add pixel theme 
 - [x] update "minimal" style, only show formula with a simple border, the title and note are hidden by default, only show when hover. we need the node line connect formular interactive math elements with same key and next node border with a solid line.
-- [ ] add node libary management panel (at right side). for now, node can has new properties: tags (array of string). we can filter node in library panel by tags. and also we can create node folder in library panel to organize node better. node library can be search by title/content/tags. and also we can drag node from library panel to canvas to create new node, or drag node in libaray. this library can be load/save to a mathmap file, which metadata show that is a library file. and we can import/export library file to share node library with other user. all this need UI design. 
-- [ ] muilt select nodes and drag to move, and give right click menu to align nodes (left, right, top, bottom, center), and also add muilt select options in the node panel (explorer, library)
-- [ ] auto save and keep setting history
-- [ ] add do/undo functionality
+- [x] add node libary management panel (at right side). for now, node can has new properties: tags (array of string). we can filter node in library panel by tags. and also we can create node folder in library panel to organize node better. node library can be search by title/content/tags. and also we can drag node from library panel to canvas to create new node, or drag node in libaray. this library can be load/save to a mathmap file, which metadata show that is a library file. and we can import/export library file to share node library with other user. all this need UI design. 
+- [x] muilt select nodes and drag to move, and give right click menu to align nodes (left, right, top, bottom, center), and also add muilt select options in the node panel (explorer, library)
+- [x] auto save and keep setting history
+- [x] add do/undo functionality
 - [ ] add export to png/svg/pdf
 - [ ] build as electron app
 
@@ -100,28 +131,70 @@ v = \frac{d {{pos}} }{d {{time}} }
 
 - [ ] when we open explorer - item - right click - show, it take a long time to response. find bug
 
+## Data Structures and File Format
 
-> @[DIR] /home/amadeus/Public/FormularRender/newapp full understand project by reading src. right
-    now we are do this step in readme todo:- [ ] update "minimal" mode, only show formula with a 
-   simple border, the title and note are hidden by default, only show when hover. we need the node
-    line connect formular interactive math elements with same key and next node border with a 
-   solid line.// now, fix this: 1. minimal mode , the node distance should change we cursor not 
-   above (hover), this time the node is smaller, so realtime calculate node physics. and soild 
-   line link also need refresh when node expand/small  2. link to mathnode has no color, I want 
-   minimal mode has this style: link line directly link to formular element corner (whcih cornor 
-   need calculate), and a link color hover box on it (if this node link to a sub mathnode) so 
-   while minimal mode, this link line should above node ( when cursor not above) 3. all this can 
-   modify in setting panel
+MathMap project files (`.mathmap`) are stored in JSON format. The core is composed of `library` and `scene` sections, reflecting a Model (library) / View (scene) separation.
 
-normal node:
-   -------
-   name           | formular
-   tags           | Formular (fade out()
-   note discription  (just show start, fade out)  | formular
-   -----
-note node：
-    -------
-    name           
-    tags           
-    note discription  (note content show start, fade out)
-    -----
+### 1. Library (Content Library)
+Stores node metadata, LaTeX templates, and interactive logic. Keys are globally unique `contentId`s.
+
+```json
+"library": {
+    "tut_classical_energy": {
+        "title": "Classical Total Energy",
+        "type": "axiom",
+        "template": "E = {{kinetic}} + {{potential}}",
+        "segments": {
+            "kinetic": {
+                "text": "\\frac{p^2}{2m}",
+                "type": "link",
+                "target": "tut_de_broglie",
+                "connectionLabel": "Quantize"
+            },
+            "potential": {
+                "text": "V(x)",
+                "type": "text",
+                "tooltip": {
+                    "contentType": "svg",
+                    "content": "<svg>...</svg>" // SVG path data
+                }
+            }
+        }
+    }
+}
+```
+
+- `template`: Defines the formula structure; `{{kinetic}}` and `{{potential}}` are dynamic slots.
+- `segments`: Defines behavior for each slot.
+    - `kinetic` is defined as a Link that navigates to `tut_de_broglie`.
+    - `potential` is defined as Text and shows an SVG image on hover.
+
+### 2. Scene (Scene Layout)
+Stores instantiated node state on the canvas, coordinates, and connection relationships.
+
+```json
+"scene": {
+    "nodes": [
+        {
+            "id": "n2",
+            "contentId": "tut_classical_energy",
+            "x": 839.31,
+            "y": 234.51
+        }
+    ],
+    "links": [
+        {
+            "source": "n1",
+            "target": "n2"
+        }
+    ],
+    "expandedState": {
+        "n2-kinetic": "tut_de_broglie_1767000614528"
+    }
+}
+```
+
+- `nodes`: Instances referencing `contentId`. Multiple nodes can reference the same `contentId`.
+- `expandedState`: Records current interactive state (for example: which target node the `kinetic` slot of node `n2` is expanded to).
+
+This separation allows editing a content entry to update all scene instances that reference it.
