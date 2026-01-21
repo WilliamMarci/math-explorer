@@ -159,38 +159,43 @@
       {
         "id": "n1",
         "contentId": "tut_note_intro",
-        "x": 493.7451405320922,
-        "y": -473.7818930599333,
+        "x": 707.0185240758351,
+        "y": -332.23455789533926,
         "fx": null,
         "fy": null
       },
       {
         "id": "n2",
         "contentId": "tut_classical_energy",
-        "x": 693.0841154742534,
-        "y": -274.3126900594382
-      },
-      {
-        "id": "n3",
-        "contentId": "tut_de_broglie",
-        "x": 489.5330500561201,
-        "y": -17.115022837703147,
+        "x": 839.3156539467856,
+        "y": 234.51570622565606,
         "fx": null,
         "fy": null
       },
       {
         "id": "n8",
         "contentId": "tut_note_wavepacket",
-        "x": 715.2747282856078,
-        "y": 398.27893690394757,
+        "x": 375.46797202918873,
+        "y": 900.6365758170509,
         "fx": null,
         "fy": null
       },
       {
-        "id": "tut_plane_wave_1766896951084",
+        "id": "tut_de_broglie_1767000614528",
+        "contentId": "tut_de_broglie",
+        "x": 1028.741928881279,
+        "y": 763.6255825827562,
+        "fx": null,
+        "fy": null,
+        "color": "#ef4444"
+      },
+      {
+        "id": "tut_plane_wave_1767000620072",
         "contentId": "tut_plane_wave",
-        "x": 434.25034011489527,
-        "y": 318.49522726229014,
+        "x": 1253.1998089145065,
+        "y": 1256.9638641686738,
+        "fx": null,
+        "fy": null,
         "color": "#3b82f6"
       }
     ],
@@ -201,15 +206,16 @@
       },
       {
         "source": "n2",
-        "target": "n3"
+        "target": "tut_de_broglie_1767000614528"
       },
       {
-        "source": "n3",
-        "target": "tut_plane_wave_1766896951084"
+        "source": "tut_de_broglie_1767000614528",
+        "target": "tut_plane_wave_1767000620072"
       }
     ],
     "expandedState": {
-      "n3-k_rel": "tut_plane_wave_1766896951084"
+      "n2-kinetic": "tut_de_broglie_1767000614528",
+      "tut_de_broglie_1767000614528-k_rel": "tut_plane_wave_1767000620072"
     }
   }
 }
